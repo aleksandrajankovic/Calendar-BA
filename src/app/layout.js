@@ -1,4 +1,4 @@
-import { Roboto, Roboto_Condensed} from "next/font/google";
+import { Roboto, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
@@ -14,35 +14,35 @@ const robotoCondensed = Roboto_Condensed({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://meridianbet.bet.br"),
-  title: "Calendário de Promoções | Meridianbet",
+  metadataBase: new URL("https://calendar.meridianbet.ba"),
+  title: "Kalendar promocija | Meridianbet",
   description:
-    "Fique por dentro das ofertas diárias, descubra novas promoções e aproveite recompensas exclusivas com o Calendário de Promoções da Meridianbet.",
+    "Budite u toku s dnevnim ponudama, otkrijte nove promocije i iskoristite ekskluzivne nagrade uz Meridianbet Kalendar promocija.",
   alternates: {
-    canonical: "/calendario",
+    canonical: "/", // jer je projekat na subdomenu calendar.meridianbet.ba
   },
   openGraph: {
-    title: "Calendário de Promoções | Meridianbet",
+    title: "Kalendar promocija | Meridianbet",
     description:
-      "Fique por dentro das ofertas diárias, descubra novas promoções e aproveite recompensas exclusivas com o Calendário de Promoções da Meridianbet.",
-    url: "/calendario",
+      "Budite u toku s dnevnim ponudama, otkrijte nove promocije i iskoristite ekskluzivne nagrade uz Meridianbet Kalendar promocija.",
+    url: "/", // putanja unutar subdomena
     siteName: "Meridianbet",
     images: [
       {
         url: "https://cloud.merbet.com/Preview-image/calendar-universal.png",
         width: 1200,
         height: 630,
-        alt: "Calendário de Promoções",
+        alt: "Kalendar promocija",
       },
     ],
-    locale: "pt_BR",
+    locale: "bs_BA",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Calendário de Promoções | Meridianbet",
+    title: "Kalendar promocija | Meridianbet",
     description:
-      "Fique por dentro das ofertas diárias, descubra novas promoções e aproveite recompensas exclusivas com o Calendário de Promoções da Meridianbet.",
+      "Budite u toku s dnevnim ponudama, otkrijte nove promocije i iskoristite ekskluzivne nagrade uz Meridianbet Kalendar promocija.",
     images: ["https://cloud.merbet.com/Preview-image/calendar-universal.png"],
   },
   robots: {
@@ -54,12 +54,9 @@ export const metadata = {
   },
 };
 
-
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-        
       <body
         className={`${roboto.variable} ${robotoCondensed.variable} min-h-screen`}
       >

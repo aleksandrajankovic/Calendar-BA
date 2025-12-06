@@ -17,7 +17,7 @@ const LABELS = [
 
 // jezici za tabove
 const LANGS = [
-  { code: "pt", label: "Portuguese" },
+  { code: "ba", label: "Bosnian" },
   { code: "en", label: "English" },
 ];
 

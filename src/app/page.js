@@ -80,7 +80,7 @@ function normalizeSpecials(rows = [], lang) {
 }
 
 function getMonthLabel(year, month, lang) {
-  const locale = lang === "pt" ? "pt-BR" : "en-US";
+  const locale = lang === "ba" ? "ba-BA" : "en-US";
   const raw = new Date(year, month, 1).toLocaleString(locale, {
     month: "long",
   });
@@ -103,8 +103,8 @@ export default async function Home({ searchParams }) {
   const mRaw = getParam(sp, "m");
   const langRaw = getParam(sp, "lang");
 
-  const ALLOWED_LANGS = ["pt", "en"];
-  const lang = ALLOWED_LANGS.includes(langRaw) ? langRaw : "pt";
+  const ALLOWED_LANGS = ["ba", "en"];
+  const lang = ALLOWED_LANGS.includes(langRaw) ? langRaw : "ba";
 
   const reqYear = Number.parseInt(yRaw ?? "", 10);
   const reqMonth = Number.parseInt(mRaw ?? "", 10);
@@ -207,7 +207,7 @@ export default async function Home({ searchParams }) {
           "
         >
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white md:text-left text-center">
-            {lang === "pt" ? "Calendário de Promoções" : "Promotion Calendar"}
+            {lang === "ba" ? "Kalendar Promocija" : "Promotion Calendar"}
           </h1>
 
           {isAdmin && (

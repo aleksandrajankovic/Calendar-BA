@@ -6,7 +6,7 @@ import ImageGalleryModal from "../../components/ImageGalleryModal";
 
 // jezici za tabove
 const LANGS = [
-  { code: "pt", label: "Portuguese" },
+  { code: "ba", label: "Bosnian" },
   { code: "en", label: "English" },
 ];
 
@@ -39,7 +39,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
     const d = initial?.day ?? now.getDate();
 
     const baseTranslations = initial?.translations || {};
-    const mainLang = LANGS[0].code; // "pt"
+    const mainLang = LANGS[0].code; 
 
     if (!baseTranslations[mainLang]) {
       baseTranslations[mainLang] = {
