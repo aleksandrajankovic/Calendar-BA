@@ -39,5 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# uploads – slike sa servera
+/public/uploads/
 
 /src/generated/prisma

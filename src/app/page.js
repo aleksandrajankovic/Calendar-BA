@@ -195,7 +195,7 @@ export default async function Home({ searchParams }) {
         "
         style={{ backgroundImage: `url("${bgImageUrl}")` }}
       >
-        {/* <SnowOverlay /> */}
+        <SnowOverlay />
         <div
           className="
             w-full
