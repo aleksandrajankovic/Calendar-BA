@@ -207,7 +207,7 @@ export default async function Home({ searchParams }) {
           "
         >
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white md:text-left text-center">
-            {lang === "ba" ? "Kalendar Promocija 1" : "Promotions Calendar"}
+            {lang === "ba" ? "Kalendar Promocija 11" : "Promotions Calendar"}
           </h1>
 
           {isAdmin && (
