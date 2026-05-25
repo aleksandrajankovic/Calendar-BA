@@ -1,62 +1,57 @@
-// lib/calendarInteractions.js
+// src/lib/calendarInteractions.js
+import { renderScratchModal } from "./scratch/renderScratchModal";
+import { initScratch } from "./scratch/initScratch";
 
 // -----------------------------
-// RENDER MODALA
+// NORMAL MODAL (bez scratch-a)
 // -----------------------------
-function renderModalHTML(entry, lang = "pt") {
+function renderNormalModal(entry, lang = "ba") {
   if (!entry) {
-    return lang === "pt"
-      ? "<p>Sem promoções neste dia.</p>"
+    return lang === "ba"
+      ? "<p>Nema promocija za ovaj dan.</p>"
       : "<p>No promotions for this day.</p>";
   }
 
-  const { promo, day, type } = entry;
+  const { promo, type } = entry;
 
-  // koristimo top-level vrednosti, pa ako nema, padamo na promo.*
   const title = entry.title || (promo && promo.title) || "";
   const button = entry.button || (promo && promo.button) || "";
-  const buttonColor =
-    entry.buttonColor || (promo && promo.buttonColor) || "green";
+  const buttonColor = entry.buttonColor || (promo && promo.buttonColor) || "green";
   const link = entry.link || (promo && promo.link) || "";
   const richHtml = entry.richHtml || (promo && promo.richHtml) || "";
 
-  // ako baš nemamo nikakav sadržaj
   if (!promo && !richHtml) {
-    return lang === "pt"
-      ? "<p>Sem promoções neste dia.</p>"
+    return lang === "ba"
+      ? "<p>Nema promocija za ovaj dan.</p>"
       : "<p>No promotions for this day.</p>";
   }
 
-  // --- izvlačenje prve <img> iz richHtml ---
   let imageHtml = null;
   let contentHtml = richHtml;
 
   if (contentHtml) {
     const imgMatch = contentHtml.match(/<img[^>]*>/i);
     if (imgMatch) {
-      imageHtml = imgMatch[0];
+      imageHtml = imgMatch[0]
+        .replace(/\s+width="[^"]*"/gi, "")
+        .replace(/\s+height="[^"]*"/gi, "")
+        .replace(/\s+style="[^"]*"/gi, "");
       contentHtml = contentHtml.replace(imgMatch[0], "");
     }
   }
 
-  // --- kategorija (žuti label) ---
   let categoryLabel;
   if (type === "special") {
-    categoryLabel = lang === "pt" ? "Promoção especial" : "Special promotion";
+    categoryLabel = lang === "ba" ? "Ekskluzivna promocija" : "Special promotion";
   } else {
-    categoryLabel = lang === "pt" ? "Promoção semanal" : "Weekly promotion";
+    categoryLabel = lang === "ba" ? "Sedmična promocija" : "Weekly promotion";
   }
 
-  // --- button ---
   const openUrl = link && String(link);
   const canOpen = openUrl && openUrl !== "#";
-
   const isYellow = buttonColor === "yellow";
+  const defaultButtonLabel = button || (lang === "ba" ? "Saznaj više" : "Learn more");
 
-  const defaultButtonLabel =
-    button || (lang === "pt" ? "Registrar-se" : "Register");
-
-  // --- HTML struktura: slika → title → žuti label → opis → dugme ---
   return `
     <div class="flex flex-col w-full max-w-[420px] mx-auto">
       ${
@@ -71,16 +66,22 @@ function renderModalHTML(entry, lang = "pt") {
       <h2 class="font-bold text-[24px] md:text-[28px] leading-tight mb-2 text-center text-white">
         ${title}
       </h2>
-
+      <div class="text-[11px] uppercase tracking-[0.12em] text-[#FACC01] mb-3 text-center">
+        ${categoryLabel}
+      </div>
 
       ${
         contentHtml
           ? `
         <div class="
           text-sm leading-relaxed text-white/90
-          [&_p]:mb-2 [&_p:last-child]:mb-0
-          [&_strong]:font-semibold
-          [&_ul]:list-disc [&_ul]:pl-5
+          [&_strong]:font-semibold [&_em]:italic [&_u]:underline
+          [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1
+          [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1
+          [&_li]:mb-0.5
+          [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-1 [&_h1]:mt-2
+          [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-1 [&_h2]:mt-2
+          [&_h3]:text-base [&_h3]:font-bold [&_h3]:mb-1 [&_h3]:mt-2
         ">
           ${contentHtml}
         </div>`
@@ -120,6 +121,51 @@ function renderModalHTML(entry, lang = "pt") {
 }
 
 // -----------------------------
+// MAIN RENDER
+// -----------------------------
+function renderModalHTML(entry, lang = "ba") {
+  if (!entry) {
+    return lang === "ba"
+      ? "<p>Nema promocija za ovaj dan.</p>"
+      : "<p>No promotions for this day.</p>";
+  }
+
+  const { promo, type } = entry;
+
+  const title = entry.title || (promo && promo.title) || "";
+  const button = entry.button || (promo && promo.button) || "";
+  const buttonColor = entry.buttonColor || (promo && promo.buttonColor) || "green";
+  const link = entry.link || (promo && promo.link) || "";
+  const richHtml = entry.richHtml || (promo && promo.richHtml) || "";
+  const defaultButtonLabel = button || (lang === "ba" ? "Saznaj više" : "Learn more");
+
+  const isScratch = !!(entry?.scratch || promo?.scratch);
+
+  if (isScratch) {
+    const shareKey =
+      entry?.shareUrl ||
+      `${entry?.year}-${entry?.month}-${entry?.day}-${type || "promo"}`;
+
+    return renderScratchModal({
+      title,
+      richHtml,
+      link,
+      button: defaultButtonLabel,
+      buttonColor,
+      type,
+      lang,
+      shareKey,
+      threshold: 0.7,
+      year: entry?.year,
+      month: entry?.month,
+      day: entry?.day,
+    });
+  }
+
+  return renderNormalModal(entry, lang);
+}
+
+// -----------------------------
 // INIT FUNKCIJA
 // -----------------------------
 export function initCalendarInteractions(rootSelector = "#calendar-root") {
@@ -131,7 +177,7 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
 
   const payload = JSON.parse(dataEl.textContent || "{}");
   const days = Array.isArray(payload.days) ? payload.days : [];
-  const lang = payload.lang || "pt";
+  const lang = payload.lang || "ba";
 
   const modal = root.querySelector("#promo-modal");
   const content = root.querySelector("#promo-content");
@@ -143,17 +189,35 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
   let isOpen = false;
   let previousUrl = null;
 
+  function resetModalStyles() {
+    modal.style.opacity = "";
+    modal.style.transition = "";
+  }
+
   function animateOpen() {
     if (!dialog) return;
 
-    // reset na zatvoreno stanje
-    dialog.classList.remove("opacity-100", "translate-y-0", "scale-100");
-    dialog.classList.add("opacity-0", "translate-y-4", "scale-95");
+    dialog.classList.remove(
+      "opacity-100", "translate-y-0", "scale-100",
+      "opacity-0", "translate-y-4", "scale-95"
+    );
 
-    // sledeći frame → otvoreno stanje
+    dialog.style.opacity = "0";
+    dialog.style.transform = "scale(0.85)";
+    dialog.style.transition =
+      "opacity 300ms cubic-bezier(0.34,1.56,0.64,1), transform 300ms cubic-bezier(0.34,1.56,0.64,1)";
+
     requestAnimationFrame(() => {
-      dialog.classList.remove("opacity-0", "translate-y-4", "scale-95");
-      dialog.classList.add("opacity-100", "translate-y-0", "scale-100");
+      requestAnimationFrame(() => {
+        dialog.style.opacity = "1";
+        dialog.style.transform = "scale(1)";
+        setTimeout(() => {
+          dialog.style.transition = "";
+          dialog.style.opacity = "";
+          dialog.style.transform = "";
+          dialog.classList.add("opacity-100", "translate-y-0", "scale-100");
+        }, 320);
+      });
     });
   }
 
@@ -163,13 +227,14 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
       return;
     }
 
+    dialog.style.opacity = "";
+    dialog.style.transform = "";
+    dialog.style.transition = "";
+
     dialog.classList.remove("opacity-100", "translate-y-0", "scale-100");
     dialog.classList.add("opacity-0", "translate-y-4", "scale-95");
 
-    // duration mora da se poklopi sa Tailwind `duration-200`
-    setTimeout(() => {
-      cb?.();
-    }, 200);
+    setTimeout(() => cb?.(), 200);
   }
 
   function openModal(entry) {
@@ -180,20 +245,28 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
     isOpen = true;
 
     previousUrl = window.location.href;
-
     if (entry && entry.shareUrl) {
       history.pushState({ promo: true }, "", entry.shareUrl);
     }
 
     animateOpen();
+
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const canvas = document.getElementById("scratch-canvas");
+        if (canvas) initScratch();
+      })
+    );
   }
 
   function closeModal({ fromPopstate = false } = {}) {
     isOpen = false;
     document.body.style.overflow = "";
+    resetModalStyles();
 
     animateClose(() => {
       modal.classList.add("hidden");
+      content.innerHTML = "";
 
       if (!fromPopstate && previousUrl) {
         history.replaceState(null, "", previousUrl);
@@ -201,7 +274,7 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
     });
   }
 
-  // Klik na dan - otvori modal
+  // Klik na dan
   root.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-day-button]");
     if (!btn) return;
@@ -214,7 +287,7 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
     openModal(entry);
   });
 
-  // Zatvaranje – X dugme
+  // X dugme
   closeBtn?.addEventListener("click", (e) => {
     e.preventDefault();
     closeModal();
@@ -234,7 +307,7 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
     }
   });
 
-  // Back/forward u browseru
+  // Back/forward
   window.addEventListener("popstate", () => {
     if (isOpen) {
       closeModal({ fromPopstate: true });

@@ -3,9 +3,18 @@
 
 import { useMemo } from "react";
 
-const FLAKE_COUNT = 45; 
+const FLAKE_COUNT = 45;
+
+function isSnowSeason() {
+  const now = new Date();
+  const m = now.getMonth(); // 0-11
+  const d = now.getDate();
+  return (m === 11 && d >= 25) || (m === 0 && d <= 15);
+}
 
 export default function SnowOverlay() {
+  const snow = isSnowSeason();
+
   const flakes = useMemo(
     () =>
       Array.from({ length: FLAKE_COUNT }, (_, i) => {
@@ -23,6 +32,8 @@ export default function SnowOverlay() {
       }),
     []
   );
+
+  if (!snow) return null;
 
   return (
     <div

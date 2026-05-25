@@ -1,0 +1,210 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { getCategoryGradient } from "@/lib/promoCategoryStyles";
+import { rowdies } from "@/app/fonts";
+
+export default function CalendarMobileHorizontal({ adminPreview = false }) {
+  const [days, setDays] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const dataEl = document.getElementById("calendar-data");
+    if (!dataEl) return;
+
+    try {
+      const payload = JSON.parse(dataEl.textContent || "{}");
+      const allDays = Array.isArray(payload.days) ? payload.days : [];
+
+      const year = payload.year;
+      const month = payload.month;
+
+      const currentDays = allDays.filter((d) => d && typeof d.day === "number");
+
+      let ghostDays = [];
+      if (typeof year === "number" && typeof month === "number") {
+        const prevLastDate = new Date(year, month, 0);
+        const prevMonthDays = prevLastDate.getDate();
+        const prevMonthIndex = prevLastDate.getMonth();
+        const prevYear = prevLastDate.getFullYear();
+
+        const GHOST_COUNT = 4;
+        const start = Math.max(1, prevMonthDays - GHOST_COUNT + 1);
+
+        for (let dayNum = start; dayNum <= prevMonthDays; dayNum++) {
+          ghostDays.push({
+            day: dayNum,
+            year: prevYear,
+            month: prevMonthIndex,
+            hasPromo: false,
+            isFutureForUx: false,
+            isLocked: true,
+            category: "ALL",
+            icon: null,
+            isGhost: true,
+            isToday: false,
+          });
+        }
+      }
+
+      const combinedDays = [...ghostDays, ...currentDays];
+
+      let todayIndex = combinedDays.findIndex((d) => d.isToday);
+      if (todayIndex === -1) todayIndex = combinedDays.findIndex((d) => d.hasPromo);
+      if (todayIndex === -1) todayIndex = 0;
+
+      setDays(combinedDays);
+      setActiveIndex(todayIndex >= 0 ? todayIndex : 0);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let startX = 0, startY = 0;
+
+    const onStart = (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+
+    const onMove = (e) => {
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx >= dy) e.preventDefault();
+    };
+
+    const onEnd = (e) => {
+      const delta = e.changedTouches[0].clientX - startX;
+      if (delta > 80) {
+        navigator?.vibrate?.(20);
+        setActiveIndex((i) => (i > 0 ? i - 1 : i));
+      } else if (delta < -80) {
+        navigator?.vibrate?.(20);
+        setActiveIndex((i) => (i < days.length - 1 ? i + 1 : i));
+      }
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: false });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [days.length]);
+
+  if (!days.length) return null;
+
+  const MAX_OFFSET = 1;
+  const CARD_WIDTH = 230;
+  const CARD_HEIGHT = 257;
+  const TRACK_WIDTH = 380;
+  const ACTIVE_X = TRACK_WIDTH / 2 - CARD_WIDTH / 2;
+  const CARD_GAP = 170;
+
+  return (
+    <div className="w-full flex flex-col items-center mt-[20px]">
+      <div
+        ref={containerRef}
+        className="relative w-full max-w-[380px] overflow-visible touch-none"
+        style={{ height: CARD_HEIGHT + 40 }}
+      >
+        {days.map((day, index) => {
+          const offset = index - activeIndex;
+          if (Math.abs(offset) > MAX_OFFSET) return null;
+
+          const locked = day.isLocked && !adminPreview;
+          const category = day.category || "ALL";
+          const isGhost = Boolean(day.isGhost);
+          const gradientClass = getCategoryGradient(category);
+          const isTodayActive = day.isToday && !isGhost;
+
+          const translateX = ACTIVE_X + offset * CARD_GAP;
+          const scale = offset === 0 ? 1 : 0.9;
+          const zIndex = MAX_OFFSET - Math.abs(offset);
+          const opacity = offset !== 0 ? 0.45 : locked && !isGhost ? 0.7 : 1;
+
+          return (
+            <button
+              key={`mobile-h-${index}-${day.day}`}
+              data-day-button
+              data-day={day.day}
+              disabled={locked || isGhost}
+              onClick={() => !isGhost && setActiveIndex(index)}
+              className={`
+                absolute top-0 left-0
+                w-[230px] h-[257px]
+                rounded-[18px]
+                ${isTodayActive
+                  ? "border-2 border-[#FACC01] shadow-[0_0_20px_rgba(250,204,1,0.9)]"
+                  : ""}
+                ${isGhost
+                  ? "bg-[#000000D9] shadow-[0_2px_6px_rgba(0,0,0,0.4)]"
+                  : gradientClass}
+                shadow-[0_18px_40px_rgba(0,0,0,0.7)]
+                transition duration-300
+                ${locked || isGhost ? "cursor-default" : "cursor-pointer active:scale-[0.98]"}
+              `}
+              style={{
+                transform: `translate3d(${translateX}px, 20px, 0) scale(${scale})`,
+                zIndex,
+                opacity,
+              }}
+            >
+              <span
+                className={`
+                  ${rowdies.className}
+                  absolute left-4 bottom-4
+                  z-10 text-[64px] leading-[65px] font-bold
+                  bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent
+                `}
+              >
+                {day.day.toString().padStart(2, "0")}
+              </span>
+
+              {!isGhost && (
+                <>
+                  {!locked && day.hasPromo && day.icon ? (
+                    <img
+                      src={day.icon}
+                      alt="promo icon"
+                      className="absolute inset-y-[-55px] h-[100%] w-auto object-cover object-center drop-shadow-[0_12px_25px_rgba(0,0,0,0.7)]"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <>
+                      {day.icon && (
+                        <img
+                          src={day.icon}
+                          alt="promo icon"
+                          className="absolute right-0 inset-y-0 h-full w-[90%] object-cover object-right"
+                          loading="lazy"
+                        />
+                      )}
+                      {locked && (
+                        <div className="absolute z-20 inset-0 pointer-events-none">
+                          <div className="absolute inset-0 bg-[#00000080]" />
+                          <div
+                            className="absolute inset-0 bg-center bg-no-repeat bg-[length:44px_44px]"
+                            style={{ backgroundImage: "url('./img/lock.png')" }}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

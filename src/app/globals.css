@@ -223,6 +223,94 @@ button {
     display: none;              /* WebKit */
   }
 }
+/* -------- MOBILE FOOTBALL ANIMATIONS -------- */
+
+@keyframes ball-pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.3; }
+}
+
+@keyframes ball-glow-breathe {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes nudge-left {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-4px); }
+}
+
+@keyframes nudge-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+@keyframes promo-dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.6); opacity: 0.5; }
+}
+
+.ball-pulse-ring {
+  animation: ball-pulse-ring 2.5s ease-in-out infinite;
+}
+
+.ball-pulse-ring-delay {
+  animation: ball-pulse-ring 2.5s ease-in-out 0.8s infinite;
+}
+
+.ball-glow-breathe {
+  animation: ball-glow-breathe 3s ease-in-out infinite;
+}
+
+.nudge-left {
+  animation: nudge-left 2s ease-in-out infinite;
+}
+
+.nudge-right {
+  animation: nudge-right 2s ease-in-out infinite;
+}
+
+.promo-dot-pulse {
+  animation: promo-dot-pulse 2s ease-in-out infinite;
+}
+
+/* -------- GOLD BALL ANIMATIONS -------- */
+
+@keyframes gold-glow-pulse {
+  0%, 100% { box-shadow: 0 0 18px 4px rgba(248,217,122,0.45); }
+  50%       { box-shadow: 0 0 30px 10px rgba(248,217,122,0.72); }
+}
+
+@keyframes gold-shimmer {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(110%); }
+}
+
+@keyframes gold-wobble {
+  0%   { transform: rotate(0deg); }
+  6%   { transform: rotate(-3deg); }
+  9%   { transform: rotate(3deg); }
+  12%  { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.gold-ball-glow {
+  animation: gold-glow-pulse 2.4s ease-in-out infinite;
+}
+
+.gold-ball-wobble {
+  animation: gold-wobble 5s ease-in-out infinite;
+}
+
+/* -------- UTILITIES -------- */
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* -------- SNOW -------- */
 
 .snowflake {

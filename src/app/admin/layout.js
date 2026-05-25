@@ -1,9 +1,10 @@
 // app/admin/layout.jsx
-"use client";
-
 import AdminHeader from "./components/Header";
 import SidebarNav from "./components/Sidebar";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLayout({ children }) {
   return (

@@ -73,14 +73,16 @@ export function buildCalendarData({
     const icon =
       promo?.icon && String(promo.icon).trim() ? promo.icon : null;
 
-    const shareUrl = promo
-      ? buildPromoUrlISO(d, promo.title || slugify("promocao"))
+    const hasContent = promo && (promo.richHtml || "").trim().length > 0;
+    const shareUrl = hasContent
+      ? buildPromoUrlISO(d, promo.title || slugify("promocija"))
       : null;
 
     const isFutureForUx = adminPreview ? false : isFuture && !isToday;
     const isLocked = adminPreview ? false : (!promo || isFutureForUx);
 
     const category = promo?.category || "ALL";
+    const scratch = !!promo?.scratch;
 
     // cell za grid (desktop)
     cells.push({
@@ -99,8 +101,7 @@ export function buildCalendarData({
     const title = promo?.title || "";
     const richHtml = promo?.richHtml || null;
     const link = promo?.link || "#";
-    const button =
-      promo?.button || (lang === "pt" ? "Saiba mais" : "Learn more");
+    const button = promo?.button || (lang === "ba" ? "Saznaj više" : "Learn more");
     const buttonColor = promo?.buttonColor || "green";
 
     daysPayload.push({
@@ -115,8 +116,8 @@ export function buildCalendarData({
       button,
       buttonColor,
       category,
+      scratch,
 
-   
       hasPromo: Boolean(promo),
       isToday,
       isFutureForUx,
@@ -131,7 +132,8 @@ export function buildCalendarData({
             button,
             buttonColor,
             category,
-            icon, 
+            icon,
+            scratch,
           }
         : null,
     });

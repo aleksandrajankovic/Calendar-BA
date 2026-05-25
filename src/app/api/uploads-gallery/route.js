@@ -1,24 +1,17 @@
+// src/app/api/uploads-gallery/route.js
 export const runtime = "nodejs";
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { getAdminFromRequest } from "@/lib/auth";
 
 const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
 const ALLOWED_EXT = /\.(png|jpe?g|webp|gif|svg)$/i;
 
-function getAdminIdFromCookie(req) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const match = cookieHeader.match(/admin_auth=(\d+)/);
-  if (!match) return null;
-  return Number(match[1]);
-}
-
-// GET /api/uploads-gallery -> lista svih slika
+// GET /api/uploads-gallery — lista svih slika
 export async function GET(req) {
-  const adminId = getAdminIdFromCookie(req);
-  if (!adminId) {
-    return new Response("unauthorized", { status: 401 });
-  }
+  const session = await getAdminFromRequest(req);
+  if (!session) return new Response("unauthorized", { status: 401 });
 
   try {
     const entries = await fs.readdir(UPLOADS_DIR, { withFileTypes: true });
@@ -51,20 +44,13 @@ export async function GET(req) {
 
 // DELETE /api/uploads-gallery?name=filename.webp
 export async function DELETE(req) {
-  const adminId = getAdminIdFromCookie(req);
-  if (!adminId) {
-    return new Response("unauthorized", { status: 401 });
-  }
+  const session = await getAdminFromRequest(req);
+  if (!session) return new Response("unauthorized", { status: 401 });
 
   const { searchParams } = new URL(req.url);
-  const name = searchParams.get("name");
+  const name = path.basename(searchParams.get("name") || "");
 
-  if (
-    !name ||
-    name.includes("..") ||
-    name.includes("/") ||
-    !ALLOWED_EXT.test(name)
-  ) {
+  if (!name || !ALLOWED_EXT.test(name)) {
     return new Response("bad name", { status: 400 });
   }
 
@@ -73,7 +59,6 @@ export async function DELETE(req) {
   try {
     await fs.unlink(fullPath);
   } catch (err) {
-    // ako ne postoji, ignoriši
     console.warn("Delete error:", err.message);
   }
 

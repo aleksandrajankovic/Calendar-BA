@@ -49,6 +49,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
       translations: baseTranslations,
       buttonColor: initial?.buttonColor || "green",
       category: initial?.category || "ALL",
+      scratch: !!initial?.scratch,
     };
   }, [initial]);
 
@@ -127,6 +128,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
         image: form.image ?? "",
         icon: form.icon ?? "",
         active: !!form.active,
+        scratch: !!form.scratch,
         buttonColor: form.buttonColor ?? "green",
 
         category: form.category || "ALL",
@@ -199,6 +201,18 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Scratch toggle */}
+        <div className="pb-1">
+          <label className="flex items-center gap-2 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={!!form.scratch}
+              onChange={(e) => setField("scratch", e.target.checked)}
+            />
+            Enable scratch card
+          </label>
         </div>
 
         <div className="flex items-center justify-between gap-4">

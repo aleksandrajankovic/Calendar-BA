@@ -60,11 +60,11 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
 
       icon: initial?.icon ?? "",
       active: initial?.active ?? true,
+      scratch: !!initial?.scratch,
       buttonColor: initial?.buttonColor ?? "green",
 
       translations: baseTranslations,
 
-      // NOVO: category
       category: initial?.category || "ALL",
     };
   }, [initial]);
@@ -143,6 +143,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         link: mainLink,
 
         active: !!form.active,
+        scratch: !!form.scratch,
         buttonColor: form.buttonColor || "green",
 
         translations,
@@ -231,6 +232,18 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Scratch toggle */}
+        <div className="pb-2">
+          <label className="flex items-center gap-2 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={!!form.scratch}
+              onChange={(e) => set("scratch", e.target.checked)}
+            />
+            Enable scratch card
+          </label>
         </div>
 
         {/* Active toggle + Preview */}

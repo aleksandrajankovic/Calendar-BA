@@ -13,9 +13,16 @@ enum PromoCategory {
   ALL
 }
 model CalendarSettings {
-  id         Int      @id
-  bgImageUrl String? 
-  updatedAt  DateTime @updatedAt
+  id                Int      @id
+  bgImageUrl        String?
+  bgImageUrlMobile  String?
+  monthBackgrounds  Json?
+  calendarPosition  String?
+  calendarTitle     Json?
+  logoUrl           String?
+  theme             String?
+  seoMeta           Json?
+  updatedAt         DateTime @updatedAt
 }
 model WeeklyPromotion {
   id           Int      @id @default(autoincrement())
@@ -43,6 +50,7 @@ model SpecialPromotion {
   link         String
   button       String
   active       Boolean  @default(true)
+  scratch      Boolean  @default(false)
   icon         String?
   buttonColor  String   @default("green")
   rich         Json?
@@ -61,13 +69,14 @@ model WeeklyPlan {
   link        String
   button      String
   active      Boolean  @default(true)
+  scratch     Boolean  @default(false)
   icon        String?
   rich        Json?
   richHtml    String?
   buttonColor String   @default("green")
 
   translations Json?
-category     PromoCategory @default(ALL)
+  category     PromoCategory @default(ALL)
   @@unique([year, month, weekday])
 }
 

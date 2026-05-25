@@ -1,17 +1,14 @@
+// src/app/api/images/route.js
 export const runtime = "nodejs";
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { getAdminFromRequest } from "@/lib/auth";
 
-function isAuthed(req) {
-  const cookie = req.headers.get("cookie") || "";
-  // dovoljno je da postoji admin_auth cookie
-  return cookie.includes("admin_auth=");
-}
-
-// GET /api/images  -> lista fajlova iz public/uploads
+// GET /api/images — lista fajlova iz public/uploads
 export async function GET(req) {
-  if (!isAuthed(req)) return new Response("unauthorized", { status: 401 });
+  const session = await getAdminFromRequest(req);
+  if (!session) return new Response("unauthorized", { status: 401 });
 
   const uploadsDir = path.join(process.cwd(), "public", "uploads");
 
@@ -27,10 +24,7 @@ export async function GET(req) {
 
     return Response.json({ files });
   } catch (err) {
-    // ako folder ne postoji, samo empty lista
-    if (err.code === "ENOENT") {
-      return Response.json({ files: [] });
-    }
+    if (err.code === "ENOENT") return Response.json({ files: [] });
     console.error("List images error:", err);
     return new Response("Error listing images", { status: 500 });
   }
@@ -38,10 +32,12 @@ export async function GET(req) {
 
 // DELETE /api/images  { filename }
 export async function DELETE(req) {
-  if (!isAuthed(req)) return new Response("unauthorized", { status: 401 });
+  const session = await getAdminFromRequest(req);
+  if (!session) return new Response("unauthorized", { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const filename = (body.filename || "").trim();
+  // path.basename uklanja sve path traversal pokušaje
+  const filename = path.basename((body.filename || "").trim());
 
   if (!filename || filename.includes("..") || filename.includes("/")) {
     return new Response("Bad filename", { status: 400 });
