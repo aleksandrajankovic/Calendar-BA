@@ -302,6 +302,25 @@ button {
   animation: gold-wobble 5s ease-in-out infinite;
 }
 
+/* -------- TODAY RING PULSE -------- */
+
+@keyframes today-ring-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 0px rgba(250,204,1,0), 0 0 22px rgba(250,204,1,0.65);
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0;
+    box-shadow: 0 0 0 12px rgba(250,204,1,0), 0 0 42px rgba(250,204,1,0);
+  }
+}
+
+.today-ring-pulse {
+  animation: today-ring-pulse 1.6s ease-out infinite;
+}
+
 /* -------- UTILITIES -------- */
 
 .no-scrollbar {

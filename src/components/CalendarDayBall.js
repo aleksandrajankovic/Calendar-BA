@@ -9,7 +9,7 @@ export default function CalendarDayBall({ cell, adminPreview }) {
   const ringClass = isGold
     ? "border-2 border-[#f8d97a]"
     : isToday
-    ? "ring-2 ring-[#FACC01] shadow-[0_0_18px_rgba(250,204,1,0.9)]"
+    ? "ring-[3px] ring-[#FACC01] shadow-[0_0_24px_rgba(250,204,1,1)]"
     : "ring-1 ring-white/10";
 
   return (
@@ -20,7 +20,7 @@ export default function CalendarDayBall({ cell, adminPreview }) {
     >
       <div className="relative h-[78%] aspect-square">
         {isToday && (
-          <span className="pointer-events-none absolute inset-0 z-20 rounded-full animate-ping ring-1 ring-[#FACC01]/40" />
+          <span className="pointer-events-none absolute inset-0 z-20 rounded-full today-ring-pulse" style={{ border: "3px solid #FACC01" }} />
         )}
 
         <button

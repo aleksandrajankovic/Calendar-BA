@@ -4,8 +4,6 @@
 import { useEffect, useRef, useState } from "react";
 import { russoOne } from "@/app/fonts";
 import MonthPagination from "@/components/MonthPagination";
-import ProgressRing from "@/components/ProgressRing";
-import { getOpenedDays } from "@/lib/calendarProgress";
 
 const NUM_DOTS = 7;
 
@@ -27,9 +25,6 @@ export default function CalendarMobileFootball({
   const lastSwipeVibrateAtRef = useRef(0);
   const ballTouchRef = useRef({ startX: 0, startY: 0 });
   const ballSwipedRef = useRef(false);
-  const [progressSteps, setProgressSteps] = useState([]);
-  const [openedDays, setOpenedDays] = useState(new Set());
-
   useEffect(() => {
     const dataEl = document.getElementById("calendar-data");
     if (!dataEl) return;
@@ -45,37 +40,9 @@ export default function CalendarMobileFootball({
 
       setDays(currentDays);
       setSelectedIndex(todayIndex >= 0 ? todayIndex : 0);
-
-      if (typeof year === "number" && typeof month === "number") {
-        setOpenedDays(getOpenedDays(year, month));
-      }
     } catch {
       // ignore
     }
-  }, [year, month]);
-
-  useEffect(() => {
-    if (!days.length) return;
-    const steps = days
-      .filter((d) => d.hasPromo)
-      .map((d) => ({
-        day: d.day,
-        category: d.category || "ALL",
-        isToday: d.isToday || false,
-        isFuture: d.isFutureForUx || false,
-      }));
-    setProgressSteps(steps);
-  }, [days]);
-
-  useEffect(() => {
-    if (typeof year !== "number" || typeof month !== "number") return;
-    const onOpened = (e) => {
-      if (e.detail?.year === year && e.detail?.month === month) {
-        setOpenedDays(getOpenedDays(year, month));
-      }
-    };
-    window.addEventListener("mb-day-opened", onOpened);
-    return () => window.removeEventListener("mb-day-opened", onOpened);
   }, [year, month]);
 
   useEffect(() => {
@@ -135,7 +102,7 @@ export default function CalendarMobileFootball({
   const ballRing = isGold
     ? "border-2 border-[#f8d97a]"
     : isToday
-    ? "ring-4 ring-[#FACC01] shadow-[0_0_40px_rgba(250,204,1,0.8)]"
+    ? "ring-[4px] ring-[#FACC01] shadow-[0_0_40px_rgba(250,204,1,1)]"
     : "ring-1 ring-white/15";
 
   return (
@@ -299,7 +266,15 @@ export default function CalendarMobileFootball({
             }}
           />
 
-          <ProgressRing steps={progressSteps} openedDays={openedDays} />
+          {isToday && (
+            <span
+              className="pointer-events-none absolute rounded-full z-20 today-ring-pulse"
+              style={{
+                width: "var(--football-ball-size)", height: "var(--football-ball-size)",
+                border: "4px solid #FACC01",
+              }}
+            />
+          )}
 
           <button
             data-day-button
@@ -309,7 +284,7 @@ export default function CalendarMobileFootball({
             disabled={locked}
             className={`
               relative rounded-full overflow-hidden
-              w-[var(--football-ball-size)] h-[var(--football-ball-size)]
+              w-(--football-ball-size) h-(--football-ball-size)
               ${ballRing}
               ${isGold && !locked ? "gold-ball-glow" : ""}
               bg-black/40
@@ -334,12 +309,9 @@ export default function CalendarMobileFootball({
             )}
             {locked && (
               <div
-                className="absolute inset-0 bg-[#00000080] bg-center bg-no-repeat bg-[length:60px_60px]"
+                className="absolute inset-0 bg-[#00000080] bg-center bg-no-repeat bg-size-[60px_60px]"
                 style={{ backgroundImage: "url('./img/lock.png')" }}
               />
-            )}
-            {isToday && (
-              <span className="pointer-events-none absolute inset-0 rounded-full animate-ping ring-2 ring-[#FACC01]/30" />
             )}
           </button>
         </div>
