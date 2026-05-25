@@ -79,7 +79,7 @@ export function buildCalendarData({
       : null;
 
     const isFutureForUx = adminPreview ? false : isFuture && !isToday;
-    const isLocked = adminPreview ? false : (!promo || isFutureForUx);
+    const isLocked = adminPreview ? false : isFutureForUx;
 
     const category = promo?.category || "ALL";
     const scratch = !!promo?.scratch;
