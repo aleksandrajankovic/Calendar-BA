@@ -278,7 +278,7 @@ export default async function Home({ searchParams }) {
 
         <SnowOverlay />
 
-        <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 pt-24 pb-4 md:pt-28 md:pb-10 ${innerMargin}`}>
+        <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 pt-20 pb-4 md:pt-24 md:pb-10 ${innerMargin}`}>
           <h1
             className={`
               ${activeTheme === "football"
@@ -287,7 +287,7 @@ export default async function Home({ searchParams }) {
               text-white text-center ${headingAlign}
               ${activeTheme === "football"
                 ? "mt-10 mb-4 [@media(min-height:800px)]:mb-10 md:mt-10 md:mb-10"
-                : "my-[30px]"}
+                : "mt-4 mb-4 md:mt-4 md:mb-6"}
             `}
           >
             {calendarTitle}
