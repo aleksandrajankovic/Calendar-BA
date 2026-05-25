@@ -286,7 +286,7 @@ export default async function Home({ searchParams }) {
                 : "text-3xl md:text-5xl font-extrabold tracking-tight"}
               text-white text-center ${headingAlign}
               ${activeTheme === "football"
-                ? "mt-10 mb-4 [@media(min-height:800px)]:mb-10 md:mt-10 md:mb-10"
+                ? "mb-4 [@media(min-height:800px)]:mb-10 md:mb-10"
                 : "mt-4 mb-4 md:mt-4 md:mb-6"}
             `}
           >
