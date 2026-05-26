@@ -184,6 +184,9 @@ button {
   width: 90%;
 }
 
+#scratch-canvas {
+  cursor: url("/img/coin.png") 16 16, pointer;
+}
 /* Admin može da klikne future */
 .admin-preview .future button,
 .admin-preview .future {
