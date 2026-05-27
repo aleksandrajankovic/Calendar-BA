@@ -136,8 +136,8 @@ export default function CalendarGrid({
             aria-labelledby="promo-title"
             className="
               relative
-              w-full max-w-[480px]
-              max-h-[80vh]
+              w-full max-w-[410px]
+              max-h-[90vh]
               bg-[#05070D]
               rounded-2xl
               shadow-xl

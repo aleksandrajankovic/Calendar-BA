@@ -58,12 +58,12 @@ export function renderScratchModal({
     const flipHintText = lang === "ba" ? "Tapni za detalje promocije" : "Tap for promo details";
 
     return `
-    <div class="w-full max-w-[420px] mx-auto">
+    <div class="w-full max-w-[360px] mx-auto">
 
       <div id="scratch-hint" class="mb-2 text-center text-xl font-semibold text-white uppercase">${hintText}</div>
       <div id="scratch-hint1" class="mb-3 text-[#FACC01] text-sm text-center uppercase">${hintText1}</div>
 
-      <div class="flip-card-wrapper relative w-full rounded-2xl" style="aspect-ratio:420/450; perspective:1000px">
+      <div class="flip-card-wrapper relative w-full rounded-2xl" style="aspect-ratio:360/430; perspective:1000px">
 
         <!-- Slika vidljiva iza canvasa dok se grebe; overflow-hidden ovdje ne utiče na 3D context wrappera -->
         <div id="scratch-bg-img" class="absolute inset-0 rounded-2xl overflow-hidden">
