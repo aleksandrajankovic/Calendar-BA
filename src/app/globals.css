@@ -187,6 +187,22 @@ button {
 #scratch-canvas {
   cursor: url("/img/coin.png") 16 16, pointer;
 }
+
+/* ── Flip card ─────────────────────────────────────────────── */
+.flip-card-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+.flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+.flip-card-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-card-back {
+  transform: rotateY(180deg);
+}
 /* Admin može da klikne future */
 .admin-preview .future button,
 .admin-preview .future {

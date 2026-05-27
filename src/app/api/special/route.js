@@ -43,7 +43,7 @@ export async function POST(req) {
 
   const body = await req.json().catch(() => ({}));
   const {
-    year, month, day, icon, link, buttonColor, active, scratch,
+    year, month, day, icon, link, buttonColor, active, scratch, flipCard,
     title, button, rich, richHtml,
     translations: rawTranslations, defaultLang, category,
   } = body;
@@ -73,6 +73,7 @@ export async function POST(req) {
       icon: icon ?? "",
       active: typeof active === "boolean" ? active : true,
       scratch: !!scratch,
+      flipCard: !!flipCard,
       buttonColor: buttonColor || "green",
       translations: sanitizeTranslations(translations),
       category: category || "ALL",

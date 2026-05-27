@@ -83,6 +83,7 @@ export function buildCalendarData({
 
     const category = promo?.category || "ALL";
     const scratch = !!promo?.scratch;
+    const flipCard = !!promo?.flipCard;
 
     // cell za grid (desktop)
     cells.push({
@@ -117,6 +118,7 @@ export function buildCalendarData({
       buttonColor,
       category,
       scratch,
+      flipCard,
 
       hasPromo: Boolean(promo),
       isToday,
@@ -134,6 +136,7 @@ export function buildCalendarData({
             category,
             icon,
             scratch,
+            flipCard,
           }
         : null,
     });

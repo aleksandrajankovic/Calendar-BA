@@ -24,6 +24,7 @@ export function initScratch() {
   const reveal = document.getElementById("scratch-reveal");
   const hint = document.getElementById("scratch-hint");
   const hint1 = document.getElementById("scratch-hint1");
+  const flipHint = document.getElementById("flip-hint");
 
   const threshold = Number(canvas.dataset.threshold || 0.7);
   const coverUrl = canvas.dataset.cover;
@@ -38,18 +39,30 @@ export function initScratch() {
   let timer = null;
 
   function showReveal() {
-    reveal?.classList.remove(
-      "max-h-0",
-      "opacity-0",
-      "translate-y-2",
-      "pointer-events-none"
-    );
-    reveal?.classList.add(
-      "max-h-[1200px]",
-      "opacity-100",
-      "translate-y-0",
-      "pointer-events-auto"
-    );
+    // Radi za oba moda: klasični (max-h/translate) i flip card (samo opacity)
+    reveal?.classList.remove("max-h-0", "opacity-0", "translate-y-2", "pointer-events-none");
+    reveal?.classList.add("max-h-[1200px]", "opacity-100", "translate-y-0", "pointer-events-auto");
+    if (reveal) reveal.style.pointerEvents = "auto";
+    flipHint?.classList.remove("opacity-0");
+    flipHint?.classList.add("opacity-100");
+    // Sakrij background sliku čim flip kartica postane vidljiva (front face preuzima prikaz)
+    // Bez ovog koraka slika ostaje vidljiva iza 3D flip konteksta i probija kroz back face
+    setTimeout(() => {
+      const bgImg = document.getElementById("scratch-bg-img");
+      if (bgImg) bgImg.style.display = "none";
+    }, 520);
+  }
+
+  function attachFlipListener() {
+    const flipInner = document.getElementById("flip-card-inner");
+    if (!flipInner) return;
+    // onclick umjesto addEventListener — zamjenjuje handler ako se pozove više puta
+    flipInner.onclick = (e) => {
+      if (e.target.closest("a, button")) return;
+      const flipped = flipInner.classList.toggle("is-flipped");
+      if (flipHint) flipHint.style.opacity = flipped ? "0" : "1";
+    };
+    flipInner.style.pointerEvents = "auto";
   }
 
   function hideScratchInstant() {
@@ -73,6 +86,7 @@ export function initScratch() {
       hint1?.remove();
       hideScratchInstant();
       showReveal();
+      attachFlipListener();
       return;
     }
   } catch {}
@@ -167,6 +181,7 @@ export function initScratch() {
     }, 150);
 
     showReveal();
+    attachFlipListener();
     fullyClearCanvas();
 
     canvas.style.pointerEvents = "none";

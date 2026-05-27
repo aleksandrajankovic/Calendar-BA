@@ -50,6 +50,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
       buttonColor: initial?.buttonColor || "green",
       category: initial?.category || "ALL",
       scratch: !!initial?.scratch,
+      flipCard: !!initial?.flipCard,
     };
   }, [initial]);
 
@@ -129,6 +130,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
         icon: form.icon ?? "",
         active: !!form.active,
         scratch: !!form.scratch,
+        flipCard: !!form.flipCard,
         buttonColor: form.buttonColor ?? "green",
 
         category: form.category || "ALL",
@@ -204,7 +206,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
         </div>
 
         {/* Scratch toggle */}
-        <div className="pb-1">
+        <div className="pb-1 space-y-2">
           <label className="flex items-center gap-2 text-sm text-neutral-800">
             <input
               type="checkbox"
@@ -213,6 +215,16 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
             />
             Enable scratch card
           </label>
+          {!!form.scratch && (
+            <label className="flex items-center gap-2 text-sm text-neutral-600 pl-5">
+              <input
+                type="checkbox"
+                checked={!!form.flipCard}
+                onChange={(e) => setField("flipCard", e.target.checked)}
+              />
+              Flip card effect (image → promo details)
+            </label>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-4">

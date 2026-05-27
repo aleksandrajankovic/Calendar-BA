@@ -61,6 +61,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
       icon: initial?.icon ?? "",
       active: initial?.active ?? true,
       scratch: !!initial?.scratch,
+      flipCard: !!initial?.flipCard,
       buttonColor: initial?.buttonColor ?? "green",
 
       translations: baseTranslations,
@@ -144,6 +145,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
 
         active: !!form.active,
         scratch: !!form.scratch,
+        flipCard: !!form.flipCard,
         buttonColor: form.buttonColor || "green",
 
         translations,
@@ -235,7 +237,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         </div>
 
         {/* Scratch toggle */}
-        <div className="pb-2">
+        <div className="pb-2 space-y-2">
           <label className="flex items-center gap-2 text-sm text-neutral-800">
             <input
               type="checkbox"
@@ -244,6 +246,16 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
             />
             Enable scratch card
           </label>
+          {!!form.scratch && (
+            <label className="flex items-center gap-2 text-sm text-neutral-600 pl-5">
+              <input
+                type="checkbox"
+                checked={!!form.flipCard}
+                onChange={(e) => set("flipCard", e.target.checked)}
+              />
+              Flip card effect (image → promo details)
+            </label>
+          )}
         </div>
 
         {/* Active toggle + Preview */}

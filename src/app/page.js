@@ -47,6 +47,7 @@ function normWeeklyRows(rows = [], lang) {
         buttonColor: r.buttonColor || "green",
         category:    r.category || "ALL",
         scratch:     !!r.scratch,
+        flipCard:    !!r.flipCard,
       };
     }
   }
@@ -69,6 +70,7 @@ function normalizeSpecials(rows = [], lang) {
       buttonColor: r.buttonColor || "green",
       category:    r.category || "ALL",
       scratch:     !!r.scratch,
+      flipCard:    !!r.flipCard,
     };
   });
 }

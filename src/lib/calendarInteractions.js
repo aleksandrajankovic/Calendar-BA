@@ -140,6 +140,7 @@ function renderModalHTML(entry, lang = "ba") {
   const defaultButtonLabel = button || (lang === "ba" ? "Saznaj više" : "Learn more");
 
   const isScratch = !!(entry?.scratch || promo?.scratch);
+  const flipCard = !!(entry?.flipCard || promo?.flipCard);
 
   if (isScratch) {
     const shareKey =
@@ -156,6 +157,7 @@ function renderModalHTML(entry, lang = "ba") {
       lang,
       shareKey,
       threshold: 0.7,
+      flipCard,
       year: entry?.year,
       month: entry?.month,
       day: entry?.day,

@@ -65,7 +65,7 @@ export async function PUT(req) {
   }
 
   const {
-    icon, link, buttonColor, active, scratch,
+    icon, link, buttonColor, active, scratch, flipCard,
     title, button, rich, richHtml,
     translations: rawTranslations, defaultLang, category,
   } = body;
@@ -84,6 +84,7 @@ export async function PUT(req) {
     icon: icon ?? null,
     active: Boolean(active ?? true),
     scratch: !!scratch,
+    flipCard: !!flipCard,
     buttonColor: buttonColor || "green",
     translations: sanitizeTranslations(translations),
     category: category || "ALL",

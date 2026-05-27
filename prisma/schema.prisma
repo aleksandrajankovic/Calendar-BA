@@ -51,6 +51,7 @@ model SpecialPromotion {
   button       String
   active       Boolean  @default(true)
   scratch      Boolean  @default(false)
+  flipCard     Boolean  @default(false)
   icon         String?
   buttonColor  String   @default("green")
   rich         Json?
@@ -70,6 +71,7 @@ model WeeklyPlan {
   button      String
   active      Boolean  @default(true)
   scratch     Boolean  @default(false)
+  flipCard    Boolean  @default(false)
   icon        String?
   rich        Json?
   richHtml    String?
