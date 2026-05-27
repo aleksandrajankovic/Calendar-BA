@@ -41,7 +41,9 @@ export function initScratch() {
   function showReveal() {
     // Radi za oba moda: klasični (max-h/translate) i flip card (samo opacity)
     reveal?.classList.remove("max-h-0", "opacity-0", "translate-y-2", "pointer-events-none");
-    reveal?.classList.add("max-h-[1200px]", "opacity-100", "translate-y-0", "pointer-events-auto");
+    reveal?.classList.add("max-h-[1200px]", "opacity-100", "pointer-events-auto");
+    // translate-y-0 namjerno nije ovdje — svaki CSS transform na parent-u uništava
+    // transform-style: preserve-3d na #flip-card-inner i flip ne bi radio
     if (reveal) reveal.style.pointerEvents = "auto";
     flipHint?.classList.remove("opacity-0");
     flipHint?.classList.add("opacity-100");
@@ -56,13 +58,18 @@ export function initScratch() {
   function attachFlipListener() {
     const flipInner = document.getElementById("flip-card-inner");
     if (!flipInner) return;
-    // onclick umjesto addEventListener — zamjenjuje handler ako se pozove više puta
-    flipInner.onclick = (e) => {
-      if (e.target.closest("a, button")) return;
+
+    flipInner.onclick = function (e) {
+      if (e.target?.closest("a, button")) return;
       const flipped = flipInner.classList.toggle("is-flipped");
-      if (flipHint) flipHint.style.opacity = flipped ? "0" : "1";
+      if (flipHint) {
+        flipHint.classList.toggle("opacity-0", flipped);
+        flipHint.classList.toggle("opacity-100", !flipped);
+      }
     };
+
     flipInner.style.pointerEvents = "auto";
+    flipInner.style.cursor = "pointer";
   }
 
   function hideScratchInstant() {
