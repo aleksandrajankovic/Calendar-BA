@@ -87,6 +87,12 @@ export function renderScratchModal({
             <div class="flip-card-face flip-card-back absolute inset-0 rounded-2xl bg-[#05070D] flex flex-col items-center justify-center gap-5 p-8 text-center">
               <div class="text-[11px] uppercase tracking-[0.15em] text-[#FACC01]">${categoryLabel}</div>
               <h2 class="font-bold text-[22px] md:text-[26px] text-white leading-tight">${title}</h2>
+              ${restHtml
+                ? `<div class="text-sm text-white/90 text-left w-full
+                              [&_p]:mb-2 [&_p:last-child]:mb-0
+                              [&_strong]:font-semibold
+                              [&_ul]:list-disc [&_ul]:pl-5">${restHtml}</div>`
+                : ""}
               ${canOpen
                 ? `<a href="${link}" target="_blank" rel="noreferrer"
                      class="w-4/5 max-w-[300px] px-4 py-3 rounded-[10px] text-sm text-center font-semibold block
