@@ -18,7 +18,7 @@ export function renderScratchModal({
   lang,
   shareKey,
   threshold = 0.7,
-  coverSrc = "/img/scratchCard.png",
+  coverSrc = "/img/scratchCard1.jpeg",
   flipCard = false,
   year,
   month,
