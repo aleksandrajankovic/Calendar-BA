@@ -39,16 +39,14 @@ export function initScratch() {
   let timer = null;
 
   function showReveal() {
-    // Radi za oba moda: klasični (max-h/translate) i flip card (samo opacity)
+
     reveal?.classList.remove("max-h-0", "opacity-0", "translate-y-2", "pointer-events-none");
     reveal?.classList.add("max-h-[1200px]", "opacity-100", "pointer-events-auto");
-    // translate-y-0 namjerno nije ovdje — svaki CSS transform na parent-u uništava
-    // transform-style: preserve-3d na #flip-card-inner i flip ne bi radio
+  
     if (reveal) reveal.style.pointerEvents = "auto";
     flipHint?.classList.remove("opacity-0");
     flipHint?.classList.add("opacity-100");
-    // Sakrij background sliku čim flip kartica postane vidljiva (front face preuzima prikaz)
-    // Bez ovog koraka slika ostaje vidljiva iza 3D flip konteksta i probija kroz back face
+
     setTimeout(() => {
       const bgImg = document.getElementById("scratch-bg-img");
       if (bgImg) bgImg.style.display = "none";

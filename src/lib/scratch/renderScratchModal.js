@@ -37,7 +37,7 @@ export function renderScratchModal({
 
   const hintText  = lang === "ba" ? "SPREMAN ZA IZNENAĐENJE?" : "Ready for a surprise?";
   const hintText1 = lang === "ba"
-    ? "Ogrebi i otkrij današnju specijalnu promociju"
+    ? "Otkrij današnju specijalnu promociju"
     : "Scratch to reveal today's offer";
 
   const canvas = `
