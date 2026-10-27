@@ -83,7 +83,7 @@ async function emojiBurst({ duration = 1400, perPuff = 8 } = {}) {
         y: oy,
         vx: Math.cos(rad) * speed,
         vy: -Math.sin(rad) * speed,
-        gravity: rand(0.6, 0.9) * 3,
+        gravity: rand(1.0, 1.4) * 3,
         drift: left ? -drift : drift,
         wobble: rand(0, Math.PI * 2),
         wobbleSpeed: rand(0.05, 0.12),
