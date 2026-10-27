@@ -1,6 +1,100 @@
 // src/lib/scratch/initScratch.js
-import confetti from "canvas-confetti";
 import { markDayOpened } from "@/lib/calendarProgress";
+
+// Emoji burst drawn with fillText on our own canvas. canvas-confetti's shapeFromText
+// uses ImageBitmap patterns that render as white boxes on iOS Safari / some Android.
+function emojiBurst(emojis, { duration = 1400, perPuff = 8 } = {}) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  const fx = document.createElement("canvas");
+  fx.width = W * dpr;
+  fx.height = H * dpr;
+  Object.assign(fx.style, {
+    position: "fixed",
+    inset: "0",
+    width: `${W}px`,
+    height: `${H}px`,
+    pointerEvents: "none",
+    zIndex: "9999",
+  });
+  document.body.appendChild(fx);
+  const ctx = fx.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const parts = [];
+  const burstEnd = Date.now() + duration;
+  let left = true;
+
+  // alternate sides and mirror angle/drift so both halves get the same amount
+  (function puff() {
+    const offset = rand(0.05, 0.35);
+    const tilt = rand(0, 30);
+    const spread = rand(40, 80);
+    const drift = rand(0, 0.6);
+    const size = [16, 22, 28][Math.floor(Math.random() * 3)];
+    const ox = W * (left ? 0.5 - offset : 0.5 + offset);
+    const oy = H * rand(0.3, 0.45);
+    for (let i = 0; i < perPuff; i++) {
+      const deg = (left ? 90 + tilt : 90 - tilt) + rand(-spread / 2, spread / 2);
+      const rad = (deg * Math.PI) / 180;
+      const speed = rand(20, 38) * rand(0.5, 1);
+      parts.push({
+        text: emojis[Math.floor(Math.random() * emojis.length)],
+        size,
+        x: ox,
+        y: oy,
+        vx: Math.cos(rad) * speed,
+        vy: -Math.sin(rad) * speed,
+        gravity: rand(0.6, 0.9) * 3,
+        drift: left ? -drift : drift,
+        wobble: rand(0, Math.PI * 2),
+        wobbleSpeed: rand(0.05, 0.12),
+        tick: 0,
+        ticks: 320,
+      });
+    }
+    left = !left;
+    if (Date.now() < burstEnd) setTimeout(puff, rand(30, 70));
+  })();
+
+  let last = performance.now();
+  (function frame(now) {
+    const step = Math.min((now - last) / (1000 / 60), 3);
+    last = now;
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.tick += step;
+      p.vx *= Math.pow(0.93, step);
+      p.vy *= Math.pow(0.93, step);
+      p.x += (p.vx + p.drift) * step;
+      p.y += (p.vy + p.gravity) * step;
+      p.wobble += p.wobbleSpeed * step;
+
+      if (p.tick >= p.ticks || p.y > H + 40) {
+        parts.splice(i, 1);
+        continue;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = 1 - p.tick / p.ticks;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(Math.sin(p.wobble) * 0.35);
+      ctx.font = `${p.size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+      ctx.fillText(p.text, 0, 0);
+      ctx.restore();
+    }
+
+    if (parts.length || Date.now() < burstEnd) requestAnimationFrame(frame);
+    else fx.remove();
+  })(last);
+}
 
 function getAnonUserId() {
   try {
@@ -179,40 +273,7 @@ export function initScratch() {
     hint?.remove();
     hint1?.remove();
 
-    // Halloween burst: bats and candy in small staggered puffs so they don't all fall together
-    const sizes = [1.6, 2.2, 2.8].map((scalar) => ({
-      scalar,
-      shapes: [
-        confetti.shapeFromText({ text: "🦇", scalar }),
-        confetti.shapeFromText({ text: "🍬", scalar }),
-      ],
-    }));
-    const rand = (min, max) => Math.random() * (max - min) + min;
-    const burstEnd = Date.now() + 1400;
-    let left = true;
-
-    // alternate sides and mirror angle/drift so both halves get the same amount
-    (function puff() {
-      const { scalar, shapes } = sizes[Math.floor(Math.random() * sizes.length)];
-      const offset = rand(0.05, 0.35);
-      const tilt = rand(0, 30);
-      const drift = rand(0, 0.6);
-      confetti({
-        shapes,
-        scalar,
-        particleCount: 8,
-        angle: left ? 90 + tilt : 90 - tilt,
-        spread: rand(40, 80),
-        startVelocity: rand(20, 38),
-        gravity: rand(0.6, 0.9),
-        drift: left ? -drift : drift,
-        decay: 0.93,
-        ticks: 320,
-        origin: { x: left ? 0.5 - offset : 0.5 + offset, y: rand(0.3, 0.45) },
-      });
-      left = !left;
-      if (Date.now() < burstEnd) setTimeout(puff, rand(30, 70));
-    })();
+    emojiBurst(["🦇", "🍬"]);
 
     showReveal();
     attachFlipListener();
