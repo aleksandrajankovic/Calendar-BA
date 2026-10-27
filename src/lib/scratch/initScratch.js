@@ -1,9 +1,44 @@
 // src/lib/scratch/initScratch.js
 import { markDayOpened } from "@/lib/calendarProgress";
 
-// Emoji burst drawn with fillText on our own canvas. canvas-confetti's shapeFromText
-// uses ImageBitmap patterns that render as white boxes on iOS Safari / some Android.
-function emojiBurst(emojis, { duration = 1400, perPuff = 8 } = {}) {
+// Emoji burst drawn on our own canvas. canvas-confetti's shapeFromText uses ImageBitmap
+// patterns that render as white boxes on iOS Safari / some Android, and system emoji
+// look different per OS, so we use Twemoji SVGs (public/img/fx, CC-BY 4.0) instead.
+const BURST_IMAGES = ["/img/fx/bat.svg", "/img/fx/candy.svg"];
+const BURST_SIZES = [18, 24, 30];
+let spritesPromise = null;
+
+// rasterize each image once per size; drawing a cached canvas per frame is cheap
+function loadSprites() {
+  if (spritesPromise) return spritesPromise;
+  const dpr = window.devicePixelRatio || 1;
+  spritesPromise = Promise.all(
+    BURST_IMAGES.map(
+      (src) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = src;
+        })
+    )
+  ).then((imgs) =>
+    imgs.filter(Boolean).flatMap((img) =>
+      BURST_SIZES.map((size) => {
+        const c = document.createElement("canvas");
+        c.width = c.height = Math.ceil(size * dpr);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        return { canvas: c, size };
+      })
+    )
+  );
+  return spritesPromise;
+}
+
+async function emojiBurst({ duration = 1400, perPuff = 8 } = {}) {
+  const sprites = await loadSprites();
+  if (!sprites.length) return;
+
   const dpr = window.devicePixelRatio || 1;
   const W = window.innerWidth;
   const H = window.innerHeight;
@@ -21,9 +56,6 @@ function emojiBurst(emojis, { duration = 1400, perPuff = 8 } = {}) {
   });
   document.body.appendChild(fx);
   const ctx = fx.getContext("2d");
-  ctx.scale(dpr, dpr);
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
 
   const rand = (min, max) => Math.random() * (max - min) + min;
   const parts = [];
@@ -36,7 +68,8 @@ function emojiBurst(emojis, { duration = 1400, perPuff = 8 } = {}) {
     const tilt = rand(0, 30);
     const spread = rand(40, 80);
     const drift = rand(0, 0.6);
-    const size = [16, 22, 28][Math.floor(Math.random() * 3)];
+    const size = BURST_SIZES[Math.floor(Math.random() * BURST_SIZES.length)];
+    const pool = sprites.filter((s) => s.size === size);
     const ox = W * (left ? 0.5 - offset : 0.5 + offset);
     const oy = H * rand(0.3, 0.45);
     for (let i = 0; i < perPuff; i++) {
@@ -44,7 +77,7 @@ function emojiBurst(emojis, { duration = 1400, perPuff = 8 } = {}) {
       const rad = (deg * Math.PI) / 180;
       const speed = rand(20, 38) * rand(0.5, 1);
       parts.push({
-        text: emojis[Math.floor(Math.random() * emojis.length)],
+        sprite: pool[Math.floor(Math.random() * pool.length)].canvas,
         size,
         x: ox,
         y: oy,
@@ -66,7 +99,8 @@ function emojiBurst(emojis, { duration = 1400, perPuff = 8 } = {}) {
   (function frame(now) {
     const step = Math.min((now - last) / (1000 / 60), 3);
     last = now;
-    ctx.clearRect(0, 0, W, H);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, fx.width, fx.height);
 
     for (let i = parts.length - 1; i >= 0; i--) {
       const p = parts[i];
@@ -82,14 +116,14 @@ function emojiBurst(emojis, { duration = 1400, perPuff = 8 } = {}) {
         continue;
       }
 
-      ctx.save();
+      const a = Math.sin(p.wobble) * 0.35;
+      const cos = Math.cos(a) * dpr;
+      const sin = Math.sin(a) * dpr;
+      ctx.setTransform(cos, sin, -sin, cos, p.x * dpr, p.y * dpr);
       ctx.globalAlpha = 1 - p.tick / p.ticks;
-      ctx.translate(p.x, p.y);
-      ctx.rotate(Math.sin(p.wobble) * 0.35);
-      ctx.font = `${p.size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-      ctx.fillText(p.text, 0, 0);
-      ctx.restore();
+      ctx.drawImage(p.sprite, -p.size / 2, -p.size / 2, p.size, p.size);
     }
+    ctx.globalAlpha = 1;
 
     if (parts.length || Date.now() < burstEnd) requestAnimationFrame(frame);
     else fx.remove();
@@ -114,6 +148,7 @@ function getAnonUserId() {
 export function initScratch() {
   const canvas = document.getElementById("scratch-canvas");
   if (!canvas) return;
+  loadSprites();
 
   const reveal = document.getElementById("scratch-reveal");
   const hint = document.getElementById("scratch-hint");
@@ -273,7 +308,7 @@ export function initScratch() {
     hint?.remove();
     hint1?.remove();
 
-    emojiBurst(["🦇", "🍬"]);
+    emojiBurst();
 
     showReveal();
     attachFlipListener();
