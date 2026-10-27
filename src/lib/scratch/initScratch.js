@@ -179,11 +179,40 @@ export function initScratch() {
     hint?.remove();
     hint1?.remove();
 
-    const colors = ["#ff0000", "#ffd700", "#17bb00", "#0066ff", "#ff69b4", "#ffffff"];
-    confetti({ particleCount: 80, spread: 70, startVelocity: 38, ticks: 300, origin: { x: 0.35, y: 0.35 }, colors });
-    setTimeout(() => {
-      confetti({ particleCount: 60, spread: 80, startVelocity: 32, ticks: 300, origin: { x: 0.65, y: 0.35 }, colors });
-    }, 150);
+    // Halloween burst: bats and candy in small staggered puffs so they don't all fall together
+    const sizes = [1.6, 2.2, 2.8].map((scalar) => ({
+      scalar,
+      shapes: [
+        confetti.shapeFromText({ text: "🦇", scalar }),
+        confetti.shapeFromText({ text: "🍬", scalar }),
+      ],
+    }));
+    const rand = (min, max) => Math.random() * (max - min) + min;
+    const burstEnd = Date.now() + 1400;
+    let left = true;
+
+    // alternate sides and mirror angle/drift so both halves get the same amount
+    (function puff() {
+      const { scalar, shapes } = sizes[Math.floor(Math.random() * sizes.length)];
+      const offset = rand(0.05, 0.35);
+      const tilt = rand(0, 30);
+      const drift = rand(0, 0.6);
+      confetti({
+        shapes,
+        scalar,
+        particleCount: 8,
+        angle: left ? 90 + tilt : 90 - tilt,
+        spread: rand(40, 80),
+        startVelocity: rand(20, 38),
+        gravity: rand(0.6, 0.9),
+        drift: left ? -drift : drift,
+        decay: 0.93,
+        ticks: 320,
+        origin: { x: left ? 0.5 - offset : 0.5 + offset, y: rand(0.3, 0.45) },
+      });
+      left = !left;
+      if (Date.now() < burstEnd) setTimeout(puff, rand(30, 70));
+    })();
 
     showReveal();
     attachFlipListener();
