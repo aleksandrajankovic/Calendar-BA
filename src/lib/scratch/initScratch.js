@@ -344,6 +344,7 @@ export function initScratch({ confetti: confettiStyle = null } = {}) {
     hint1?.remove();
 
     launchConfetti(confettiStyle || { style: "classic" });
+    window.dispatchEvent(new CustomEvent("mb-scratch-revealed"));
 
     showReveal();
     attachFlipListener();

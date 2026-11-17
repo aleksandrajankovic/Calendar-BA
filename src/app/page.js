@@ -6,6 +6,7 @@ import AdminLogoutButton from "@/components/AdminLogoutButton";
 import prisma from "@/lib/db";
 import { cookies } from "next/headers";
 import Image from "next/image";
+import Link from "next/link";
 import { verifyToken } from "@/lib/auth";
 import { BASE_URL, monthHref, isValidYear, isValidMonth } from "@/lib/calendarUrls";
 import SnowOverlay from "@/components/SnowOverlay";
@@ -380,32 +381,32 @@ export default async function Home({ searchParams, pageMonth }) {
             <div className="mt-2 mb-4 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded bg-amber-500/20 text-amber-200 px-3 py-1 text-sm">
                 <span>Admin preview</span>
-                <a
+                <Link
                   href="/admin"
                   className="underline hover:text-white transition-colors"
                   title="Go to dashboard"
                 >
                   Dashboard
-                </a>
+                </Link>
                 <AdminLogoutButton />
               </div>
               {isClosed && (
                 <div className="inline-flex items-center gap-1.5 rounded bg-red-700/40 text-red-200 border border-red-500/40 px-3 py-1 text-sm">
                   <span>⚠ Kalendar zatvoren — posjetioci vide samo poruku</span>
-                  <a href="/admin/calendar-style" className="underline hover:text-white transition-colors">
+                  <Link href="/admin/calendar-style" className="underline hover:text-white transition-colors">
                     Izmijeni
-                  </a>
+                  </Link>
                 </div>
               )}
               {isMonthInactive && (
                 <div className="inline-flex items-center gap-1.5 rounded bg-red-700/40 text-red-200 border border-red-500/40 px-3 py-1 text-sm">
                   <span>⚠ Mjesec deaktiviran — nije vidljiv korisnicima</span>
-                  <a
+                  <Link
                     href="/admin/calendar-style"
                     className="underline hover:text-white transition-colors"
                   >
                     Izmijeni
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>

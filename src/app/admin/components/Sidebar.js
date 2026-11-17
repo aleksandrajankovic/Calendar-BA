@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,8 +10,19 @@ const items = [
   { href: "/admin/calendar-style", label: "Calendar Styling" },
 ];
 
+// Za sada samo za super admina (API to isto provjerava)
+const superItems = [{ href: "/admin/analytics", label: "Analytics" }];
+
 export default function SidebarNav({ className = "", topOffsetPx = 56 }) {
   const pathname = usePathname();
+  const [isSuper, setIsSuper] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => setIsSuper(Boolean(me?.isSuper)))
+      .catch(() => {});
+  }, []);
 
   return (
     <aside
@@ -22,7 +34,7 @@ export default function SidebarNav({ className = "", topOffsetPx = 56 }) {
     >
       <nav aria-label="Sidebar">
         <ul className="text-[13px]">
-          {items.map((item) => {
+          {(isSuper ? [...items, ...superItems] : items).map((item) => {
             const active   = pathname === item.href;
             const expanded = item.children && pathname.startsWith(item.href);
 

@@ -99,7 +99,7 @@ export function renderScratchModal({
                               [&_ul]:list-disc [&_ul]:pl-5">${restHtml}</div>`
                 : ""}
               ${canOpen
-                ? `<a href="${link}" target="_blank" rel="noreferrer"
+                ? `<a href="${link}" data-track="cta" target="_blank" rel="noreferrer"
                      class="w-4/5 max-w-[300px] px-4 py-3 rounded-[10px] text-sm text-center font-semibold block
                             ${isYellow ? "bg-[#FACC01] text-black" : "bg-[#17BB00] text-white"}
                             hover:brightness-110 transition"
@@ -150,7 +150,7 @@ export function renderScratchModal({
 
       ${canOpen
         ? `<div class="pt-5 flex justify-center">
-             <a href="${link}" target="_blank" rel="noreferrer"
+             <a href="${link}" data-track="cta" target="_blank" rel="noreferrer"
                 class="w-4/5 max-w-[360px] px-4 py-3 rounded-[10px] text-sm text-center font-semibold
                        ${isYellow ? "bg-[#FACC01] text-black" : "bg-[#17BB00] text-white"}
                        hover:brightness-110 transition">

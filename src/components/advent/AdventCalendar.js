@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { adventDisplay, adventBody } from "@/app/fonts";
 import { ADVENT_SPRITE, TILE_ART } from "./adventArt";
+import { track, disableTracking } from "@/lib/track";
 import s from "./AdventCalendar.module.css";
 
 const MONTHS = ["januar", "februar", "mart", "april", "maj", "juni", "juli", "august", "septembar", "oktobar", "novembar", "decembar"];
@@ -98,6 +99,10 @@ function Door({ day, index, isOpen, canOpen, adminPreview, hint, extraClass, onD
   );
 }
 
+function trackDay(type, day) {
+  track(type, { year: day.y, month: day.m, day: day.d, promoType: day.promo?.type, title: day.promo?.title });
+}
+
 function PromoModal({ day, onClose }) {
   const closeRef = useRef(null);
   const promo = day.promo;
@@ -152,6 +157,7 @@ function PromoModal({ day, onClose }) {
               href={promo.link}
               target="_blank"
               rel="noreferrer"
+              onClick={() => trackDay("cta", day)}
               className={cx(s.cta, promo.buttonColor === "yellow" ? s.ctaYellow : s.ctaGreen)}
             >
               {promo.button}
@@ -175,6 +181,14 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
   const [slide, setSlide] = useState(0);
   const chipsRef = useRef(null);
   const touch = useRef({ x: 0, y: 0, swiped: false });
+
+  // Analitika: prikaz kalendara (admin pregled se ne broji)
+  useEffect(() => {
+    if (adminPreview) disableTracking();
+    const first = days[0];
+    if (first) track("view", { year: first.y, month: first.m });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Stanje otvorenih vrata pamti se samo u browseru korisnika.
   useEffect(() => {
@@ -222,7 +236,9 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
   );
 
   const onGift = useCallback((i) => {
-    if (days[i]?.promo) setModalIdx(i);
+    if (!days[i]?.promo) return;
+    trackDay("day_open", days[i]);
+    setModalIdx(i);
   }, [days]);
 
   const closeModal = useCallback(() => setModalIdx(null), []);

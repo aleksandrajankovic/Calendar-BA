@@ -4,6 +4,7 @@ import { initScratch } from "./scratch/initScratch";
 import { esc } from "./escapeHtml";
 import { firstImage, renderSlotModal, initSlot } from "./slot/slotReveal";
 import { markDayOpened } from "./calendarProgress";
+import { track, disableTracking } from "./track";
 
 // -----------------------------
 // NORMAL MODAL (bez scratch-a)
@@ -98,6 +99,7 @@ function renderNormalModal(entry, lang = "ba") {
         <div class="pt-5 mt-2 flex justify-center">
           <a
             href="${openUrl}"
+            data-track="cta"
             target="_blank"
             rel="noreferrer"
             class="
@@ -208,6 +210,21 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
 
   const payload = JSON.parse(dataEl.textContent || "{}");
   const days = Array.isArray(payload.days) ? payload.days : [];
+
+  // Analitika: admin pregled se ne broji
+  if (payload.adminPreview) disableTracking();
+  track("view", { year: payload.year, month: payload.month });
+
+  function trackDay(type, entry) {
+    track(type, {
+      year: entry.year,
+      month: entry.month,
+      day: entry.day,
+      promoType: entry.type,
+      title: entry.title,
+    });
+  }
+  let currentEntry = null;
   const lang = payload.lang || "ba";
 
   const modal = root.querySelector("#promo-modal");
@@ -289,11 +306,14 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
           localStorage.setItem(slotKey(entry), "1");
         } catch {}
         markDayOpened(entry.year, entry.month, entry.day);
+        trackDay("slot", entry);
       },
     });
   }
 
   function openModal(entry) {
+    currentEntry = entry;
+    if (entry?.hasPromo) trackDay("day_open", entry);
     content.innerHTML = renderModalHTML(entry, lang);
 
     modal.classList.remove("hidden");
@@ -318,6 +338,7 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
 
   function closeModal({ fromPopstate = false } = {}) {
     isOpen = false;
+    currentEntry = null;
     disposeSlot();
     disposeSlot = () => {};
     document.body.style.overflow = "";
@@ -344,6 +365,16 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
     if (!entry) return;
 
     openModal(entry);
+  });
+
+  // Klik na dugme promocije (data-track="cta") — analitika
+  content.addEventListener("click", (e) => {
+    if (currentEntry && e.target.closest('[data-track="cta"]')) trackDay("cta", currentEntry);
+  });
+
+  // Grebalica javlja kad je ogrebana (initScratch)
+  window.addEventListener("mb-scratch-revealed", () => {
+    if (currentEntry) trackDay("scratch", currentEntry);
   });
 
   // X dugme
