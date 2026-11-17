@@ -1,6 +1,7 @@
 // src/lib/calendarInteractions.js
 import { renderScratchModal } from "./scratch/renderScratchModal";
 import { initScratch } from "./scratch/initScratch";
+import { esc } from "./escapeHtml";
 
 // -----------------------------
 // NORMAL MODAL (bez scratch-a)
@@ -14,8 +15,9 @@ function renderNormalModal(entry, lang = "ba") {
 
   const { promo, type } = entry;
 
-  const title = entry.title || (promo && promo.title) || "";
-  const button = entry.button || (promo && promo.button) || "";
+  // obični tekstovi iz admina se escape-uju (vidi escapeHtml.js); richHtml je sanitizovan HTML
+  const title = esc(entry.title || (promo && promo.title) || "");
+  const button = esc(entry.button || (promo && promo.button) || "");
   const buttonColor = entry.buttonColor || (promo && promo.buttonColor) || "green";
   const link = entry.link || (promo && promo.link) || "";
   const richHtml = entry.richHtml || (promo && promo.richHtml) || "";
@@ -47,7 +49,7 @@ function renderNormalModal(entry, lang = "ba") {
     categoryLabel = lang === "ba" ? "Sedmična promocija" : "Weekly promotion";
   }
 
-  const openUrl = link && String(link);
+  const openUrl = link && esc(link);
   const canOpen = openUrl && openUrl !== "#";
   const isYellow = buttonColor === "yellow";
   const defaultButtonLabel = button || (lang === "ba" ? "Saznaj više" : "Learn more");

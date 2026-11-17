@@ -1,4 +1,5 @@
 // src/lib/scratch/renderScratchModal.js
+import { esc } from "../escapeHtml";
 
 function extractFirstImg(richHtml = "") {
   if (!richHtml) return { imgSrc: "", restHtml: "" };
@@ -9,10 +10,10 @@ function extractFirstImg(richHtml = "") {
 }
 
 export function renderScratchModal({
-  title,
+  title: rawTitle,
   richHtml,
-  link,
-  button,
+  link: rawLink,
+  button: rawButton,
   buttonColor,
   type,
   lang,
@@ -24,6 +25,10 @@ export function renderScratchModal({
   month,
   day,
 }) {
+  // obični tekstovi iz admina se escape-uju (vidi escapeHtml.js); richHtml je sanitizovan HTML
+  const title = esc(rawTitle);
+  const link = esc(rawLink);
+  const button = esc(rawButton);
   const { imgSrc, restHtml } = extractFirstImg(richHtml);
 
   const categoryLabel =
@@ -33,7 +38,7 @@ export function renderScratchModal({
 
   const isYellow = buttonColor === "yellow";
   const canOpen = link && link !== "#";
-  const safeKey = String(shareKey || "default");
+  const safeKey = esc(shareKey || "default");
 
   const hintText  = lang === "ba" ? "SPREMAN ZA IZNENAĐENJE?" : "Ready for a surprise?";
   const hintText1 = lang === "ba"

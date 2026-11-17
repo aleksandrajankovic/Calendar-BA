@@ -99,17 +99,19 @@ export function buildCalendarData({
     });
 
     // payload za JS (modal + mobile)
-    const title = promo?.title || "";
-    const richHtml = promo?.richHtml || null;
-    const link = promo?.link || "#";
-    const button = promo?.button || (lang === "ba" ? "Saznaj više" : "Learn more");
+    // Zaključani (budući) dani: tekst, opis i link se NE šalju u HTML — inače bi se buduće
+    // promocije mogle pročitati iz izvornog koda stranice. Ikonica i kategorija ostaju (prikaz polja).
+    const title = isLocked ? "" : promo?.title || "";
+    const richHtml = isLocked ? null : promo?.richHtml || null;
+    const link = isLocked ? "#" : promo?.link || "#";
+    const button = isLocked ? "" : promo?.button || (lang === "ba" ? "Saznaj više" : "Learn more");
     const buttonColor = promo?.buttonColor || "green";
 
     daysPayload.push({
       day,
       year,
       month,
-      shareUrl,
+      shareUrl: isLocked ? null : shareUrl,
       type,
       title,
       richHtml,

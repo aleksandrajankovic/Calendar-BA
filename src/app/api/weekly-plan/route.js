@@ -8,8 +8,12 @@ import { sanitizeLink } from "@/lib/validate";
 
 const DEFAULT_LANG = "ba";
 
-// GET /api/weekly-plan?year=YYYY&month=MM — public, za front
+// GET /api/weekly-plan?year=YYYY&month=MM — samo admin (javni kalendar čita bazu direktno na serveru;
+// javna ruta je otkrivala i neaktivne/buduće promocije pre nego što se otvore)
 export async function GET(req) {
+  const session = await getAdminFromRequest(req);
+  if (!session) return new Response("unauthorized", { status: 401 });
+
   const { searchParams } = new URL(req.url);
   const year = Number.parseInt(searchParams.get("year") ?? "", 10);
   const month = Number.parseInt(searchParams.get("month") ?? "", 10);

@@ -1,8 +1,8 @@
-// middleware.js
+// proxy.js (Next 16: ranije middleware.js) — štiti /admin stranice; API rute same proveravaju login
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-export async function middleware(req) {
+export async function proxy(req) {
   const token = req.cookies.get("admin_auth")?.value;
 
   if (!token) {
