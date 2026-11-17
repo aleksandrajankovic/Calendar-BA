@@ -154,6 +154,8 @@
 }
 .past .gift:hover { opacity: 0.85; }
 
+/* Dvokrilna vratanca (kao prozorski kapci): krila se otvaraju lijevo i desno i ostaju
+   pod uglom unutar rama polja — ništa ne prelazi u susjedna polja. */
 .door {
   appearance: none;
   border: 0;
@@ -164,13 +166,7 @@
   position: absolute;
   inset: 0;
   border-radius: 4px;
-  transform-origin: left center;
   transform-style: preserve-3d;
-  /* zakrene se pa nestane — otvorena vrata ne vise preko susjednih polja */
-  transition:
-    transform 0.9s cubic-bezier(0.3, 0.7, 0.25, 1),
-    opacity 0.3s ease 0.5s,
-    visibility 0s linear 0.8s;
   z-index: 2;
   background: none;
 }
@@ -178,34 +174,67 @@
   outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
+.open .door {
+  pointer-events: none;
+  cursor: default;
+}
+.leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.25, 1);
+}
+.leafL { left: 0; transform-origin: left center; }
+.leafR { right: 0; transform-origin: right center; }
+.open .leafL { transform: rotateY(-80deg); }
+.open .leafR { transform: rotateY(80deg); }
 .face {
   position: absolute;
   inset: 0;
-  border-radius: 4px;
+  overflow: hidden;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+.leafL .face { border-radius: 4px 0 0 4px; }
+.leafR .face { border-radius: 0 4px 4px 0; }
 .front {
   background: var(--t-bg);
   color: var(--t-ink);
-  box-shadow: inset 0 0 0 5px var(--t-bg), inset 0 0 0 6px var(--t-line), 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+/* spoj krila po sredini */
+.leafL .front { box-shadow: inset -1px 0 0 var(--t-line); }
+/* ručkice uz spoj */
+.leafL .front::after,
+.leafR .front::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  width: 3.5cqi;
+  height: 3.5cqi;
+  border-radius: 50%;
+  background: var(--t-line);
+  transform: translateY(-50%);
+}
+.leafL .front::after { right: 2.5cqi; }
+.leafR .front::after { left: 2.5cqi; }
+/* sadržaj vrata je širok kao cijelo polje; svako krilo prikazuje svoju polovinu */
+.faceInner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 200%;
+  box-shadow: inset 0 0 0 5px var(--t-bg), inset 0 0 0 6px var(--t-line);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   padding: 9cqi 8cqi 10cqi;
 }
-.front::after {
-  content: "";
-  position: absolute;
-  right: 7cqi;
-  top: 50%;
-  width: 5cqi;
-  height: 5cqi;
-  border-radius: 50%;
-  background: var(--t-line);
-  transform: translateY(-50%);
-}
+.leafL .faceInner { left: 0; }
+.leafR .faceInner { right: 0; }
 .num {
   font-family: var(--display);
   font-weight: 700;
@@ -226,18 +255,14 @@
   color: var(--t-ink);
 }
 .ill :global(.acc) { color: var(--t-acc); }
+/* unutrašnja strana krila (vidi se kad je otvoreno) */
 .back {
   transform: rotateY(180deg);
   background: var(--t-back);
-  box-shadow: inset 0 0 0 5px var(--t-back), inset 0 0 0 6px rgba(0, 0, 0, 0.25);
 }
-.open .door {
-  transform: rotateY(-100deg);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-.noAnim .door,
+.leafL .back { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25), inset 8px 0 12px rgba(0, 0, 0, 0.22); }
+.leafR .back { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25), inset -8px 0 12px rgba(0, 0, 0, 0.22); }
+.noAnim .leaf,
 .noAnim .gift { transition: none; }
 
 /* paleta po polju */

@@ -103,14 +103,20 @@ function Door({ day, index, isOpen, canOpen, adminPreview, hint, extraClass, onD
         tabIndex={isOpen ? -1 : 0}
         onClick={() => onDoor(index)}
       >
-        <span className={cx(s.face, s.front)}>
-          <span className={s.num}>{day.d}</span>
-          <span className={s.mon}>{MONTHS[day.m].slice(0, 3)}</span>
-          <svg className={s.ill} aria-hidden="true">
-            <use href={`#adv-i-${TILE_ART[index % TILE_ART.length]}`} />
-          </svg>
-        </span>
-        <span className={cx(s.face, s.back)} />
+        {[s.leafL, s.leafR].map((side) => (
+          <span key={side} className={cx(s.leaf, side)}>
+            <span className={cx(s.face, s.front)}>
+              <span className={s.faceInner}>
+                <span className={s.num}>{day.d}</span>
+                <span className={s.mon}>{MONTHS[day.m].slice(0, 3)}</span>
+                <svg className={s.ill} aria-hidden="true">
+                  <use href={`#adv-i-${TILE_ART[index % TILE_ART.length]}`} />
+                </svg>
+              </span>
+            </span>
+            <span className={cx(s.face, s.back)} />
+          </span>
+        ))}
       </button>
 
       {day.state === "future" && (
