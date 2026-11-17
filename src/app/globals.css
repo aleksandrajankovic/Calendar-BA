@@ -47,6 +47,29 @@ body {
   min-height: 100%;
   background-color: #050e13; /* ista tamna kao sajt */
 }
+/* Slike u opisu promocije: u editoru izgledaju kao u pop-upu kalendara (puna širina, centrirano,
+   zaobljene ivice) — prva slika je u pop-upu naslovna/baner. */
+.tiptap img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+}
+.tiptap img.ProseMirror-selectednode {
+  outline: 3px solid #17bb00;
+  outline-offset: 2px;
+}
+/* Ostale slike u opisu unutar pop-upa (sve teme): centrirano, u širini prozora */
+#promo-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 8px auto;
+  border-radius: 12px;
+}
+
 .tiptap {
   :first-child {
     margin-top: 0;
