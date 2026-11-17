@@ -542,7 +542,10 @@
   position: relative;
   width: min(520px, 100%);
   max-height: 92vh;
-  overflow: auto;
+  /* bez vidljivih traka za skrolovanje (na niskim ekranima i dalje može da se skroluje) */
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   padding: 26px 18px 22px;
   border-radius: 22px;
   background: linear-gradient(160deg, #2c0a13, #0d0e1a 45%, #2c0a13);
@@ -550,6 +553,13 @@
   box-shadow: 0 0 60px rgba(209, 170, 85, 0.18), 0 30px 80px rgba(0, 0, 0, 0.7);
   animation: pop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
 }
+
+.slotPanel::-webkit-scrollbar { display: none; }
+.slotPanel:focus { outline: none; }
+/* prostor oko slota da lampice, senke i dugme ne budu odsječeni */
+.slotPanel :global(.slot-reveal) { padding: 6px 6px 10px; }
+.slotPanel :global(.slot-button:focus) { outline: none; }
+.slotPanel :global(.slot-button:focus-visible) { outline: 2px solid #fff6dc; outline-offset: 3px; }
 
 .modalWrap {
   position: relative;

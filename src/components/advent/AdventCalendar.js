@@ -164,7 +164,7 @@ const SLOT_KEY = "advent-slot:";
 // Specijalan dan: slot mašina vrti slike promocija iz perioda i staje na baner ove promocije,
 // zatim se otvara obični pop-up (onDone). Koristi isti modul kao slot reveal u ostalim temama.
 function SlotOverlay({ day, pool, onDone, onClose }) {
-  const hostRef = useRef(null);
+  const panelRef = useRef(null);
   const promo = day.promo;
   const { hero } = splitHero(promo.richHtml || "");
   const image = hero || promo.icon || "";
@@ -197,7 +197,7 @@ function SlotOverlay({ day, pool, onDone, onClose }) {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    hostRef.current?.querySelector(".slot-button")?.focus();
+    panelRef.current?.focus({ preventScroll: true });
     return () => {
       dispose();
       window.removeEventListener("keydown", onKey);
@@ -208,13 +208,13 @@ function SlotOverlay({ day, pool, onDone, onClose }) {
 
   return (
     <div className={s.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={s.slotPanel} role="dialog" aria-modal="true" aria-label={`Specijalan dan, ${day.d}. ${MONTHS[day.m]}`}>
+      <div ref={panelRef} tabIndex={-1} className={s.slotPanel} role="dialog" aria-modal="true" aria-label={`Specijalan dan, ${day.d}. ${MONTHS[day.m]}`}>
         <button type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
-        <div ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
+        <div dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </div>
   );
