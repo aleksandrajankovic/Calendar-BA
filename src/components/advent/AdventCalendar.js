@@ -174,7 +174,7 @@ function SlotOverlay({ day, pool, onDone, onClose }) {
       image,
       icon: promo.icon || "",
       pool: pool.length ? pool : [image].filter(Boolean),
-      promoHtml: "",
+      promoHtml: "<div></div>", // poslije slota se otvara advent pop-up (onDone)
       dateLabel: `${day.d}. ${MONTHS[day.m]}`,
       buttonLabel: "OTKRIJ POKLON",
     })

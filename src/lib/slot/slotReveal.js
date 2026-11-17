@@ -249,7 +249,7 @@ async function showPromo(root, onRevealed, reduced) {
       { duration: MORPH_MS, easing },
     );
   }
-  [...promo.firstElementChild.children].slice(image ? 1 : 0).forEach((el, i) => {
+  [...(promo.firstElementChild?.children || [])].slice(image ? 1 : 0).forEach((el, i) => {
     el.animate(
       [
         { opacity: 0, transform: "translateY(10px)" },
@@ -263,6 +263,7 @@ async function showPromo(root, onRevealed, reduced) {
 function addDateChip(promo) {
   if (promo.querySelector(".slot-promo-date")) return;
   const content = promo.firstElementChild;
+  if (!content) return; // bez sadržaja (npr. advent: poslije slota se otvara poseban pop-up)
   const chip = document.createElement("span");
   chip.className = "slot-promo-date";
   chip.textContent = promo.dataset.date;
