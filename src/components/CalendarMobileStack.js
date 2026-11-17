@@ -192,7 +192,7 @@ export default function CalendarMobileStack({ adminPreview = false }) {
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="flex items-center justify-center w-9 h-9 rounded-full bg-black/35">
                       <img
-                        src="./img/lock.png"
+                        src="/img/lock.png"
                         alt="default promo icon"
                         className="w-10 h-10 object-contain"
                         loading="lazy"

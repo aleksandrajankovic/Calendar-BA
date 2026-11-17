@@ -310,7 +310,7 @@ export default function CalendarMobileFootball({
             {locked && (
               <div
                 className="absolute inset-0 bg-[#00000080] bg-center bg-no-repeat bg-size-[60px_60px]"
-                style={{ backgroundImage: "url('./img/lock.png')" }}
+                style={{ backgroundImage: "url('/img/lock.png')" }}
               />
             )}
           </button>

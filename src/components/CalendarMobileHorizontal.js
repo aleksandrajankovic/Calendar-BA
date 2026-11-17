@@ -193,7 +193,7 @@ export default function CalendarMobileHorizontal({ adminPreview = false }) {
                           <div className="absolute inset-0 bg-[#00000080]" />
                           <div
                             className="absolute inset-0 bg-center bg-no-repeat bg-[length:44px_44px]"
-                            style={{ backgroundImage: "url('./img/lock.png')" }}
+                            style={{ backgroundImage: "url('/img/lock.png')" }}
                           />
                         </div>
                       )}

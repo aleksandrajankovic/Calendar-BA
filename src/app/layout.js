@@ -3,12 +3,12 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 const roboto = Roboto({
-  subsets: ["latin", "latin-ext", "cyrillic"],
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "700"],
   variable: "--font-roboto",
 });
 const robotoCondensed = Roboto_Condensed({
-  subsets: ["latin", "latin-ext", "cyrillic"],
+  subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "700"],
   variable: "--font-roboto-condensed",
 });
@@ -49,14 +49,11 @@ export const metadata = {
     index: true,
     follow: true,
   },
-  icons: {
-    icon: "/src/app/favicon.ico",
-  },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="bs">
       <body
         className={`${roboto.variable} ${robotoCondensed.variable} min-h-screen`}
       >

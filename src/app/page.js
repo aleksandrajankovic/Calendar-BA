@@ -5,7 +5,9 @@ import MonthPagination from "@/components/MonthPagination";
 import AdminLogoutButton from "@/components/AdminLogoutButton";
 import prisma from "@/lib/db";
 import { cookies } from "next/headers";
+import Image from "next/image";
 import { verifyToken } from "@/lib/auth";
+import { BASE_URL, monthHref, isValidYear, isValidMonth } from "@/lib/calendarUrls";
 import SnowOverlay from "@/components/SnowOverlay";
 import { redirect } from "next/navigation";
 
@@ -116,27 +118,22 @@ async function findNearestMonthWithPromos(currentY, currentM, direction, inactiv
 // -------------------------
 // METADATA
 // -------------------------
-const BASE_URL = "https://calendar.meridianbet.ba";
-
 const MONTH_NAMES_BS = [
   "Januar", "Februar", "Mart", "April", "Maj", "Juni",
   "Juli", "August", "Septembar", "Oktobar", "Novembar", "Decembar",
 ];
 
-export async function generateMetadata({ searchParams }) {
-  const sp = await searchParams;
-  const yRaw = Array.isArray(sp?.y) ? sp.y[0] : sp?.y;
-  const mRaw = Array.isArray(sp?.m) ? sp.m[0] : sp?.m;
-
+// Mjesec stranice: iz /[year]/[month] rute (prosljeđuje ga ta ruta), inače tekući mjesec.
+// Stari ?y=&m= linkovi se na "/" preusmjeravaju na novi URL (vidi Home).
+function resolvePageMonth(pageMonth) {
   const now = new Date();
-  const year  = Number.isInteger(parseInt(yRaw)) ? parseInt(yRaw) : now.getFullYear();
-  const month =
-    Number.isInteger(parseInt(mRaw)) && parseInt(mRaw) >= 0 && parseInt(mRaw) <= 11
-      ? parseInt(mRaw)
-      : now.getMonth();
+  if (pageMonth && isValidYear(pageMonth.year) && isValidMonth(pageMonth.month)) return pageMonth;
+  return { year: now.getFullYear(), month: now.getMonth() };
+}
 
-  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
-  const canonical = isCurrentMonth ? `${BASE_URL}/` : `${BASE_URL}/?y=${year}&m=${month}`;
+export async function generateMetadata({ pageMonth } = {}) {
+  const { year, month } = resolvePageMonth(pageMonth);
+  const canonical = `${BASE_URL}${monthHref(year, month)}`;
 
   const settings = await prisma.calendarSettings.findFirst();
   const seo = settings?.seoMeta?.ba || {};
@@ -160,8 +157,19 @@ export async function generateMetadata({ searchParams }) {
 // -------------------------
 // PAGE COMPONENT
 // -------------------------
-export default async function Home({ searchParams }) {
+export default async function Home({ searchParams, pageMonth }) {
   const sp = await searchParams;
+
+  // Stari linkovi /?y=2026&m=11 → /2026/12 (jedan kanonski URL po mjesecu)
+  if (!pageMonth) {
+    const yRaw = getParam(sp, "y");
+    const mRaw = getParam(sp, "m");
+    if (yRaw !== undefined || mRaw !== undefined) {
+      const y = Number.parseInt(yRaw ?? "", 10);
+      const m = Number.parseInt(mRaw ?? "", 10);
+      redirect(isValidYear(y) && isValidMonth(m) ? monthHref(y, m) : "/");
+    }
+  }
 
   const cookieStore = await cookies();
   const adminCookie = cookieStore.get("admin_auth");
@@ -169,26 +177,8 @@ export default async function Home({ searchParams }) {
   // inače bi bilo ko ručno postavljenim cookie-jem vidio buduće promocije
   const isAdmin = !!adminCookie?.value && !!(await verifyToken(adminCookie.value));
 
-  const now = new Date();
   const lang = "ba";
-
-  const yRaw = getParam(sp, "y");
-  const mRaw = getParam(sp, "m");
-
-  const reqYear  = Number.parseInt(yRaw ?? "", 10);
-  const reqMonth = Number.parseInt(mRaw ?? "", 10);
-
-  const MIN_YEAR = 2024;
-  const MAX_YEAR = now.getFullYear() + 2;
-
-  const year =
-    Number.isInteger(reqYear) && reqYear >= MIN_YEAR && reqYear <= MAX_YEAR
-      ? reqYear
-      : now.getFullYear();
-  const month =
-    Number.isInteger(reqMonth) && reqMonth >= 0 && reqMonth <= 11
-      ? reqMonth
-      : now.getMonth();
+  const { year, month } = resolvePageMonth(pageMonth);
 
   // Calendar settings — always read fresh (inactive flag must be current)
   const calendarSettings = await prisma.calendarSettings.findFirst();
@@ -207,7 +197,7 @@ export default async function Home({ searchParams }) {
     const nearest =
       await findNearestMonthWithPromos(year, month, "next", inactiveSet) ||
       await findNearestMonthWithPromos(year, month, "prev", inactiveSet);
-    if (nearest) redirect(`/?y=${nearest.y}&m=${nearest.m}`);
+    if (nearest) redirect(monthHref(nearest.y, nearest.m));
   }
 
   // Load promo data
@@ -262,9 +252,15 @@ export default async function Home({ searchParams }) {
           rel="noreferrer"
           aria-label="Meridianbet"
         >
-          <img
+          {/* next/image: umjesto originalnog PNG-a (2074px) šalje se verzija u veličini prikaza */}
+          <Image
             src={logoUrl}
             alt="Meridianbet"
+            width={140}
+            height={40}
+            sizes="140px"
+            priority
+            unoptimized={/^https?:\/\//.test(logoUrl)}
             className="h-8 md:h-10 w-auto"
           />
         </a>

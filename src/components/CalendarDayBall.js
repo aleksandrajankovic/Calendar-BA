@@ -63,7 +63,7 @@ export default function CalendarDayBall({ cell, adminPreview }) {
           {locked && (
             <div
               className="absolute inset-0 bg-[#00000080] bg-center bg-no-repeat bg-[length:36%_36%]"
-              style={{ backgroundImage: "url('./img/lock.png')" }}
+              style={{ backgroundImage: "url('/img/lock.png')" }}
             />
           )}
         </button>

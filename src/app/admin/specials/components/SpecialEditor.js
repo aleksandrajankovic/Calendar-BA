@@ -1,4 +1,5 @@
 "use client";
+import { monthHref } from "@/lib/calendarUrls";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import RichEditor from "@/components/RichEditor";
@@ -99,7 +100,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
     const m =
       typeof form.month === "number" ? form.month : new Date().getMonth();
 
-    const url = `/?y=${y}&m=${m}`;
+    const url = monthHref(y, m);
     window.open(url, "_blank", "noopener,noreferrer");
   }
 

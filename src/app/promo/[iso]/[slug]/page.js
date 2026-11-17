@@ -1,5 +1,6 @@
 // src/app/promo/[iso]/[slug]/page.js
 import { redirect } from "next/navigation";
+import { monthHref } from "@/lib/calendarUrls";
 
 // YYYY-MM-DD → { y, m(0-11) } + validacija
 function parseISO(iso) {
@@ -20,7 +21,7 @@ export default async function PromoDetailPage({ params }) {
   const parsed = parseISO(p.iso);
 
   if (parsed) {
-    redirect(`/?y=${parsed.y}&m=${parsed.m}`);
+    redirect(monthHref(parsed.y, parsed.m));
   }
 
   redirect("/");

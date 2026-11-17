@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // CSS ide direktno u HTML umjesto kao zasebni fajlovi koji blokiraju
+    // prvo iscrtavanje (PageSpeed: "Render-blocking requests").
+    inlineCss: true,
+  },
+  images: {
+    // /uploads/ imena su hash-ovana po sadržaju, pa se optimizovane verzije mogu keširati godinu dana
+    minimumCacheTTL: 31536000,
+  },
   async headers() {
     return [
       {
