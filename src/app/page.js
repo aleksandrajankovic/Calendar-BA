@@ -393,8 +393,12 @@ export default async function Home({ searchParams, pageMonth }) {
           {countdownTargetIso && <CountdownTimer targetIso={countdownTargetIso} label={countdownLabel} />}
 
           {isAdmin && (
-            <div className="mt-2 mb-4 flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded bg-amber-500/20 text-amber-200 px-3 py-1 text-sm">
+            // plutajuća pločica dole desno — ne pomjera sadržaj stranice (vide je samo admini)
+            <div
+              className="fixed right-3 z-30 flex max-w-[calc(100vw-24px)] flex-col items-end gap-1.5 text-xs"
+              style={{ bottom: "calc(12px + env(safe-area-inset-bottom, 0px))" }}
+            >
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-black/75 px-3 py-1.5 text-amber-200 shadow-lg backdrop-blur">
                 <span>Admin preview</span>
                 <Link
                   href="/admin"
@@ -406,7 +410,7 @@ export default async function Home({ searchParams, pageMonth }) {
                 <AdminLogoutButton />
               </div>
               {isClosed && (
-                <div className="inline-flex items-center gap-1.5 rounded bg-red-700/40 text-red-200 border border-red-500/40 px-3 py-1 text-sm">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-red-900/85 text-red-100 border border-red-500/40 px-3 py-1.5 shadow-lg backdrop-blur">
                   <span>⚠ Kalendar zatvoren — posjetioci vide samo poruku</span>
                   <Link href="/admin/calendar-style" className="underline hover:text-white transition-colors">
                     Izmijeni
@@ -414,7 +418,7 @@ export default async function Home({ searchParams, pageMonth }) {
                 </div>
               )}
               {isMonthInactive && (
-                <div className="inline-flex items-center gap-1.5 rounded bg-red-700/40 text-red-200 border border-red-500/40 px-3 py-1 text-sm">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-red-900/85 text-red-100 border border-red-500/40 px-3 py-1.5 shadow-lg backdrop-blur">
                   <span>⚠ Mjesec deaktiviran — nije vidljiv korisnicima</span>
                   <Link
                     href="/admin/calendar-style"

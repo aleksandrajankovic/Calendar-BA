@@ -138,11 +138,9 @@
 .gift:hover {
   filter: drop-shadow(0 8px 14px rgba(209, 170, 85, 0.45));
 }
-.gift:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 4px;
-  border-radius: 50%;
-}
+/* fokus: blagi zlatni sjaj umjesto kruga oko poklona */
+.gift:focus { outline: none; }
+.gift:focus-visible { filter: drop-shadow(0 0 10px rgba(209, 170, 85, 0.85)); }
 .empty {
   width: 40%;
   height: 40%;
