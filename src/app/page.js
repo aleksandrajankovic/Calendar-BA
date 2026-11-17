@@ -15,6 +15,7 @@ import { resolveAdvent, monthsInRange, buildAdventDays } from "@/lib/advent";
 import { resolveConfetti } from "@/lib/confetti";
 import CalendarClosed from "@/components/CalendarClosed";
 import CountdownTimer from "@/components/CountdownTimer";
+import { adventDisplay } from "@/app/fonts";
 import { redirect } from "next/navigation";
 
 // -------------------------
@@ -358,19 +359,36 @@ export default async function Home({ searchParams, pageMonth }) {
           />
         ) : (
         <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 ${showLogo ? "pt-20 md:pt-24" : "pt-6 md:pt-8"} pb-4 md:pb-10 ${innerMargin}`}>
-          <h1
-            className={`
-              ${activeTheme === "football"
-                ? "text-[28px] md:text-[44px] font-normal tracking-[0.06em]"
-                : "text-3xl md:text-5xl font-extrabold tracking-tight"}
-              text-white text-center ${headingAlign}
-              ${activeTheme === "football"
-                ? "mb-4 [@media(min-height:800px)]:mb-10 md:mb-10"
-                : "mt-4 mb-4 md:mt-4 md:mb-6"}
-            `}
-          >
-            {calendarTitle}
-          </h1>
+          {activeTheme === "advent" ? (
+            // Novogodišnja tema: naslov u fontu i bojama teme (krem + zlatni ukras)
+            <div className={`${adventDisplay.className} mt-2 mb-5 md:mb-8 flex flex-col items-center`}>
+              <h1
+                className="text-center text-[30px] md:text-[50px] leading-[1.08] font-bold tracking-[0.03em] text-[#f2e7cf] text-balance"
+                style={{ textShadow: "0 2px 18px rgba(0,0,0,0.6)" }}
+              >
+                {calendarTitle}
+              </h1>
+              <span aria-hidden="true" className="mt-3 flex items-center gap-3 text-[11px] leading-none text-[#d1aa55]">
+                <span className="h-px w-16 md:w-24 bg-gradient-to-r from-transparent to-[#d1aa55]" />
+                ✦
+                <span className="h-px w-16 md:w-24 bg-gradient-to-l from-transparent to-[#d1aa55]" />
+              </span>
+            </div>
+          ) : (
+            <h1
+              className={`
+                ${activeTheme === "football"
+                  ? "text-[28px] md:text-[44px] font-normal tracking-[0.06em]"
+                  : "text-3xl md:text-5xl font-extrabold tracking-tight"}
+                text-white text-center ${headingAlign}
+                ${activeTheme === "football"
+                  ? "mb-4 [@media(min-height:800px)]:mb-10 md:mb-10"
+                  : "mt-4 mb-4 md:mt-4 md:mb-6"}
+              `}
+            >
+              {calendarTitle}
+            </h1>
+          )}
 
           {countdownTargetIso && <CountdownTimer targetIso={countdownTargetIso} label={countdownLabel} />}
 
