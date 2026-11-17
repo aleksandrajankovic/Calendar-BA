@@ -454,7 +454,7 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(18, 4, 7, 0.72);
+  background: rgba(18, 4, 7, 0.75);
   backdrop-filter: blur(3px);
   animation: fade 0.25s ease;
   font-family: var(--body);
@@ -462,31 +462,79 @@
 @keyframes fade { from { opacity: 0; } }
 .modal {
   position: relative;
-  width: min(440px, 100%);
-  max-height: 90vh;
-  overflow: auto;
+  width: min(420px, 100%);
+  max-height: min(88vh, 760px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--cream);
   color: var(--ink-dark);
-  border-radius: 10px;
-  padding: 28px 24px 22px;
+  border-radius: 14px;
+  border: 1px solid rgba(209, 170, 85, 0.7);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  animation: pop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
+}
+@keyframes pop { from { transform: scale(0.88); opacity: 0; } }
+
+/* naslovna (baner promocije) */
+.hero {
+  position: relative;
+  flex: none;
+  max-height: 210px;
+  overflow: hidden;
+  background: #16060a;
+}
+.heroImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 210px;
+  object-fit: cover;
+}
+.heroPlain {
+  height: 104px;
+  background:
+    radial-gradient(circle at 50% 120%, rgba(209, 170, 85, 0.35), transparent 60%),
+    linear-gradient(180deg, #5e1a25, #2a0c12);
+}
+.heroPast .heroImg { filter: grayscale(0.6) brightness(0.85); }
+
+/* poklon kao medaljon preko donje ivice naslovne */
+.medal {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  align-self: center;
+  width: 72px;
+  height: 72px;
+  margin-top: -36px;
+  border-radius: 50%;
+  background: var(--cream);
+  box-shadow: 0 0 0 3px var(--gold), 0 6px 16px rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+}
+.medalGift {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.2));
+}
+
+.mBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 22px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-align: center;
-  box-shadow: 0 0 0 6px var(--bordeaux), 0 0 0 7px var(--gold), 0 30px 80px rgba(0, 0, 0, 0.6);
-  animation: pop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
 }
-@keyframes pop { from { transform: scale(0.85); opacity: 0; } }
-.mGift {
-  width: 92px;
-  height: 92px;
-  object-fit: contain;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
-}
-.meta { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.meta { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .pill {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -494,65 +542,91 @@
   border-radius: 999px;
 }
 .pillDate { background: var(--bordeaux); color: var(--cream); }
+.pillDone { background: rgba(44, 22, 16, 0.12); color: rgba(44, 22, 16, 0.7); }
 .pillType { background: var(--olive); color: var(--cream); }
 .mTitle {
   margin: 0;
   font-family: var(--display);
   font-weight: 700;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.15;
   text-wrap: balance;
   color: #5f1823;
 }
 .rich {
   width: 100%;
-  text-align: left;
   font-size: 14px;
   line-height: 1.55;
 }
+.rich :global(p) { margin: 0 0 6px; }
+.rich :global(p:empty) { display: none; }
 .rich :global(img) { max-width: 100%; height: auto; border-radius: 8px; }
-.rich :global(ul) { list-style: disc; padding-left: 1.25rem; margin: 4px 0; }
-.rich :global(ol) { list-style: decimal; padding-left: 1.25rem; margin: 4px 0; }
+.rich :global(ul) { list-style: disc; padding-left: 1.25rem; margin: 4px 0; text-align: left; }
+.rich :global(ol) { list-style: decimal; padding-left: 1.25rem; margin: 4px 0; text-align: left; }
 .rich :global(strong) { font-weight: 600; }
 .rich :global(h1), .rich :global(h2), .rich :global(h3) { font-weight: 700; margin: 8px 0 4px; }
 .rich :global(a) { text-decoration: underline; }
-.expired { font-size: 13px; color: var(--bordeaux); font-weight: 500; }
+
+/* dno: dugme uvijek vidljivo */
+.mFoot {
+  flex: none;
+  padding: 14px 22px 18px;
+  border-top: 1px solid rgba(124, 34, 48, 0.12);
+  display: flex;
+  justify-content: center;
+}
 .cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 80%;
-  max-width: 360px;
-  margin-top: 4px;
-  padding: 12px 16px;
+  width: 100%;
+  padding: 13px 16px;
   border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
   text-decoration: none;
   transition: filter 0.15s, transform 0.15s;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
-.cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.cta:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .cta:focus-visible { outline: 2px solid var(--bordeaux); outline-offset: 3px; }
 .ctaGreen { background: #17bb00; color: #fff; }
 .ctaYellow { background: #facc01; color: #000; }
-.ctaOff { background: #9b8f7a; color: #fff; pointer-events: none; box-shadow: none; }
+.doneNote {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(44, 22, 16, 0.65);
+  text-align: center;
+}
+
 .close {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 34px;
-  height: 34px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 0;
-  background: transparent;
-  color: var(--ink-dark);
-  font-size: 22px;
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  background: rgba(22, 6, 10, 0.6);
+  color: var(--cream);
   cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background 0.15s;
 }
-.close:hover { background: rgba(0, 0, 0, 0.07); }
-.close:focus-visible { outline: 2px solid var(--bordeaux); }
+.close svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.close:hover { background: rgba(22, 6, 10, 0.85); }
+.close:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .root *, .overlay * { animation: none !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }

@@ -141,12 +141,20 @@ function trackDay(type, day) {
   track(type, { year: day.y, month: day.m, day: day.d, promoType: day.promo?.type, title: day.promo?.title });
 }
 
+// Prva slika iz opisa promocije ide na vrh pop-up-a kao naslovna (baner), ostatak opisa ispod
+function splitHero(html = "") {
+  const m = html.match(/<img[^>]*src=["']([^"']+)["'][^>]*>/i);
+  if (!m) return { hero: null, body: html };
+  return { hero: m[1], body: html.replace(m[0], "") };
+}
+
 function PromoModal({ day, onClose }) {
   const closeRef = useRef(null);
   const promo = day.promo;
   const past = day.state === "past";
   const ctaOff = past && !PAST_CTA_ENABLED;
   const hasLink = promo.link && promo.link !== "#";
+  const { hero, body } = splitHero(promo.richHtml || "");
 
   useEffect(() => {
     const prevFocus = document.activeElement;
@@ -168,39 +176,54 @@ function PromoModal({ day, onClose }) {
     <div className={s.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby="advent-modal-title">
         <button ref={closeRef} type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
-          ×
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
         </button>
-        <GiftArt promo={promo} className={s.mGift} />
-        <div className={s.meta}>
-          <span className={cx(s.pill, s.pillDate)}>
-            {fmtShort(day)}
-            {day.y}.
-          </span>
-          <span className={cx(s.pill, s.pillType)}>
-            {promo.type === "weekly" ? "Sedmična promocija" : "Ekskluzivna promocija"}
-          </span>
+
+        {/* naslovna: baner promocije (prva slika iz opisa) ili praznična pozadina */}
+        <div className={cx(s.hero, !hero && s.heroPlain, ctaOff && s.heroPast)}>
+          {hero && <img src={hero} alt="" className={s.heroImg} />}
         </div>
-        <h2 id="advent-modal-title" className={s.mTitle}>
-          {promo.title}
-        </h2>
-        {promo.richHtml && <div className={s.rich} dangerouslySetInnerHTML={{ __html: promo.richHtml }} />}
-        {ctaOff && <span className={s.expired}>Ova promocija je završena.</span>}
-        {hasLink && (
-          ctaOff ? (
-            <span className={cx(s.cta, s.ctaOff)} aria-disabled="true">
-              {promo.button}
+
+        {/* poklon kao medaljon preko donje ivice naslovne */}
+        <div className={s.medal}>
+          <GiftArt promo={promo} className={s.medalGift} />
+        </div>
+
+        <div className={s.mBody}>
+          <div className={s.meta}>
+            <span className={cx(s.pill, ctaOff ? s.pillDone : s.pillDate)}>
+              {ctaOff ? "Završeno · " : ""}
+              {fmtShort(day)}
+              {day.y}.
             </span>
-          ) : (
-            <a
-              href={promo.link}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => trackDay("cta", day)}
-              className={cx(s.cta, promo.buttonColor === "yellow" ? s.ctaYellow : s.ctaGreen)}
-            >
-              {promo.button}
-            </a>
-          )
+            <span className={cx(s.pill, s.pillType)}>
+              {promo.type === "weekly" ? "Sedmična promocija" : "Ekskluzivna promocija"}
+            </span>
+          </div>
+          <h2 id="advent-modal-title" className={s.mTitle}>
+            {promo.title}
+          </h2>
+          {body && <div className={s.rich} dangerouslySetInnerHTML={{ __html: body }} />}
+        </div>
+
+        {(hasLink || ctaOff) && (
+          <div className={s.mFoot}>
+            {ctaOff ? (
+              <p className={s.doneNote}>Ova promocija je završena. Otvori današnje polje za novi poklon.</p>
+            ) : (
+              <a
+                href={promo.link}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => trackDay("cta", day)}
+                className={cx(s.cta, promo.buttonColor === "yellow" ? s.ctaYellow : s.ctaGreen)}
+              >
+                {promo.button}
+              </a>
+            )}
+          </div>
         )}
       </div>
     </div>
