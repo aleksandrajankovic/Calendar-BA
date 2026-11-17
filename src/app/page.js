@@ -358,12 +358,12 @@ export default async function Home({ searchParams, pageMonth }) {
             countdownLabel={countdownLabel}
           />
         ) : (
-        <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 ${showLogo ? "pt-20 md:pt-24" : "pt-6 md:pt-8"} pb-4 md:pb-10 ${innerMargin}`}>
+        <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 ${showLogo ? "pt-20 md:pt-24" : "pt-6 md:pt-8 [@media(max-width:767px)_and_(max-height:760px)]:pt-3"} pb-4 md:pb-10 ${innerMargin}`}>
           {activeTheme === "advent" ? (
             // Novogodišnja tema: naslov u fontu i bojama teme (krem + zlatni ukras)
-            <div className={`${adventDisplay.className} mt-2 mb-5 md:mb-8 flex flex-col items-center`}>
+            <div className={`${adventDisplay.className} mt-2 mb-5 md:mb-8 [@media(max-width:767px)_and_(max-height:760px)]:mt-0 [@media(max-width:767px)_and_(max-height:760px)]:mb-3 flex flex-col items-center`}>
               <h1
-                className="text-center text-[30px] md:text-[50px] leading-[1.08] font-bold tracking-[0.03em] text-[#f2e7cf] text-balance"
+                className="text-center text-[30px] [@media(max-width:767px)_and_(max-height:760px)]:text-[24px] md:text-[50px] leading-[1.08] font-bold tracking-[0.03em] text-[#f2e7cf] text-balance"
                 style={{ textShadow: "0 2px 18px rgba(0,0,0,0.6)" }}
               >
                 {calendarTitle}

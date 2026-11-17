@@ -458,6 +458,20 @@
 .capState { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
 .capDate { font-family: var(--display); font-size: 20px; }
 .capHint { font-size: 12px; color: rgba(242, 231, 207, 0.55); }
+/* niski telefoni (npr. iPhone SE, 375×667): sve stane na ekran bez skrolovanja.
+   Visoki telefoni (Pro Max) ne ulaze u ovaj uslov i ostaju kakvi jesu. */
+@media (max-width: 767px) and (max-height: 760px) {
+  .root { gap: 12px; min-height: 0; }
+  .chips { gap: 8px; padding-top: 2px; padding-bottom: 4px; }
+  .chip { width: 50px; padding: 6px 0; border-radius: 9px; }
+  .chip b { font-size: 21px; }
+  .chip small { font-size: 10px; }
+  .mView { padding: 12px 12px 12px; gap: 10px; }
+  .stage { width: min(100%, 42vh, 420px); }
+  .capState { font-size: 11px; }
+  .capDate { font-size: 17px; }
+  .capHint { display: none; }
+}
 .inLeft { animation: inL 0.35s cubic-bezier(0.2, 0.8, 0.3, 1); }
 .inRight { animation: inR 0.35s cubic-bezier(0.2, 0.8, 0.3, 1); }
 @keyframes inL { from { transform: translateX(40%); opacity: 0; } }
