@@ -460,9 +460,36 @@
   font-family: var(--body);
 }
 @keyframes fade { from { opacity: 0; } }
-.modal {
+.modalWrap {
   position: relative;
   width: min(420px, 100%);
+  animation: pop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
+}
+/* sijalice po sredini bordo rama (ram je 6px) */
+.lights {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 0 4px rgba(255, 205, 110, 0.9));
+}
+.lights rect {
+  fill: none;
+  stroke-width: 4px;
+  stroke-linecap: round;
+  animation: twinkle 1.5s ease-in-out infinite alternate;
+}
+.bulbsA { stroke: #ffd36b; }
+.bulbsB { stroke: #fff4d6; animation-delay: -1.5s !important; }
+@keyframes twinkle { from { opacity: 1; } to { opacity: 0.28; } }
+
+.modal {
+  position: relative;
+  width: 100%;
   max-height: min(88vh, 760px);
   display: flex;
   flex-direction: column;
@@ -473,7 +500,6 @@
   /* bordo ram sa tankom zlatnom linijom — kao vratanca */
   border: 6px solid var(--bordeaux);
   box-shadow: 0 0 0 1px var(--gold), inset 0 0 0 1px rgba(209, 170, 85, 0.55), 0 24px 60px rgba(0, 0, 0, 0.55);
-  animation: pop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
 }
 @keyframes pop { from { transform: scale(0.88); opacity: 0; } }
 
@@ -595,7 +621,7 @@
 /* dno: bež traka, dugme uvijek vidljivo */
 .mFoot {
   flex: none;
-  padding: 14px 22px 16px;
+  padding: 12px 22px 14px;
   background: #ead9b7;
   border-top: 1px solid rgba(209, 170, 85, 0.8);
   display: flex;
@@ -630,13 +656,14 @@
 }
 .doneNote {
   margin: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 7px;
   font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   color: var(--bordeaux);
-  text-align: center;
+  white-space: nowrap;
 }
 .doneNote svg {
   flex: none;

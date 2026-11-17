@@ -148,6 +148,8 @@ function splitHero(html = "") {
   return { hero: m[1], body: html.replace(m[0], "") };
 }
 
+const LIGHT_COUNT = 64;
+
 function PromoModal({ day, onClose }) {
   const closeRef = useRef(null);
   const promo = day.promo;
@@ -176,6 +178,22 @@ function PromoModal({ day, onClose }) {
 
   return (
     <div className={s.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={s.modalWrap}>
+      {/* lampice po bordo ramu — isto kao kod slot reveal-a */}
+      <svg className={s.lights} aria-hidden="true">
+        {[0, 1].map((k) => (
+          <rect
+            key={k}
+            className={k ? s.bulbsB : s.bulbsA}
+            width="100%"
+            height="100%"
+            rx="13"
+            pathLength="100"
+            strokeDasharray={`0 ${200 / LIGHT_COUNT}`}
+            strokeDashoffset={k ? 100 / LIGHT_COUNT : 0}
+          />
+        ))}
+      </svg>
       <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby="advent-modal-title">
         <button ref={closeRef} type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -218,7 +236,7 @@ function PromoModal({ day, onClose }) {
                   <circle cx="12" cy="12" r="9" />
                   <path d="M12 7v5l3 2" />
                 </svg>
-                Ova promocija je završena. Otvori današnje polje za novi poklon.
+                Ova promocija je završena
               </p>
             ) : (
               <a
@@ -233,6 +251,7 @@ function PromoModal({ day, onClose }) {
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
