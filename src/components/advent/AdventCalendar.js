@@ -238,7 +238,7 @@ function SlotOverlay({ day, pool, alreadyOpened, onClose }) {
           role="dialog"
           aria-modal="true"
           aria-label={`Specijalan dan, ${day.d}. ${MONTHS[day.m]}`}
-          className="relative w-full max-w-[480px] max-h-[80vh] bg-[#05070D] rounded-2xl shadow-xl flex flex-col p-4 sm:p-6 pointer-events-auto"
+          className={`${s.adventSlot} relative w-full max-w-[480px] max-h-[80vh] rounded-2xl shadow-xl flex flex-col p-4 sm:p-6 pointer-events-auto`}
         >
           <button
             id="promo-close"
@@ -579,12 +579,14 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
       {slotIdx !== null &&
         days[slotIdx.i]?.promo &&
         createPortal(
-          <SlotOverlay
-            day={days[slotIdx.i]}
-            alreadyOpened={slotIdx.seen}
-            pool={slotPool.filter((src) => src !== splitHero(days[slotIdx.i].promo.richHtml || "").hero).slice(0, 12)}
-            onClose={closeSlot}
-          />,
+          <div className={cx(s.portal, adventDisplay.variable, adventBody.variable)}>
+            <SlotOverlay
+              day={days[slotIdx.i]}
+              alreadyOpened={slotIdx.seen}
+              pool={slotPool.filter((src) => src !== splitHero(days[slotIdx.i].promo.richHtml || "").hero).slice(0, 12)}
+              onClose={closeSlot}
+            />
+          </div>,
           document.body
         )}
 
