@@ -580,6 +580,8 @@
   width: min(480px, 100%);
   animation: pop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
 }
+/* poslije slota pop-up se ne "odbija" — prelaz radi baner koji leti iz valjaka */
+.noPop { animation: fade 0.3s ease; }
 /* sijalice po sredini bordo rama (ram je 6px) */
 .lights {
   position: absolute;

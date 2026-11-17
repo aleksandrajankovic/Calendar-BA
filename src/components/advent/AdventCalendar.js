@@ -8,7 +8,6 @@ import { ADVENT_SPRITE, TILE_ART } from "./adventArt";
 import { track, disableTracking } from "@/lib/track";
 import MonthPagination from "@/components/MonthPagination";
 import { renderSlotModal, initSlot } from "@/lib/slot/slotReveal";
-import { renderNormalModal } from "@/lib/calendarInteractions";
 import "@/lib/slot/slotReveal.css";
 import s from "./AdventCalendar.module.css";
 
@@ -162,10 +161,9 @@ function splitHero(html = "") {
 const LIGHT_COUNT = 64;
 const SLOT_KEY = "advent-slot:";
 
-// Specijalan dan: isti prikaz kao slot reveal u RS-u — tamni pop-up (#promo-dialog), valjci vrte banere
-// promocija iz perioda i staju na baner ove, a zatim se slot pretvara u promociju (baner "izraste" iz
-// valjaka, zlatni datum, lampice oko kartice). Drugi put: odmah promocija (alreadyOpened).
-function SlotOverlay({ day, pool, alreadyOpened, onClose }) {
+// Specijalan dan: slot (isti modul kao u RS-u) vrti banere promocija iz perioda i staje na baner ove;
+// zatim baner "izleti" iz valjaka u krem advent pop-up (PromoModal, revealFrom).
+function SlotOverlay({ day, pool, onDone, onClose }) {
   const contentRef = useRef(null);
   const promo = day.promo;
   const { hero } = splitHero(promo.richHtml || "");
@@ -177,19 +175,7 @@ function SlotOverlay({ day, pool, alreadyOpened, onClose }) {
       image,
       icon: promo.icon || "",
       pool: pool.length ? pool : [image].filter(Boolean),
-      promoHtml: renderNormalModal(
-        {
-          type: promo.type,
-          title: promo.title,
-          richHtml: promo.richHtml,
-          link: promo.link,
-          button: promo.button,
-          buttonColor: promo.buttonColor,
-          promo,
-        },
-        "ba",
-        { hideLabel: true }
-      ),
+      promoHtml: "<div></div>", // poslije slota se otvara krem advent pop-up (onDone)
       dateLabel: `${day.d}. ${MONTHS[day.m]}`,
       buttonLabel: "OTKRIJ POKLON",
     })
@@ -199,27 +185,20 @@ function SlotOverlay({ day, pool, alreadyOpened, onClose }) {
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const dispose = initSlot({
-      alreadyOpened,
       onStopped: () => {
         try {
           localStorage.setItem(SLOT_KEY + day.key, "1");
         } catch {}
         trackDay("slot", day);
       },
+      onRevealed: ({ from } = {}) => onDone(from),
     });
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
     };
-    // klik na dugme promocije → analitika
-    const onClick = (e) => {
-      if (e.target.closest('[data-track="cta"]')) trackDay("cta", day);
-    };
-    const el = contentRef.current;
-    el?.addEventListener("click", onClick);
     window.addEventListener("keydown", onKey);
     return () => {
       dispose();
-      el?.removeEventListener("click", onClick);
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
@@ -261,8 +240,11 @@ function SlotOverlay({ day, pool, alreadyOpened, onClose }) {
   );
 }
 
-function PromoModal({ day, onClose }) {
+function PromoModal({ day, onClose, revealFrom = null }) {
   const dialogRef = useRef(null);
+  const heroRef = useRef(null);
+  const bodyRef = useRef(null);
+  const footRef = useRef(null);
   const promo = day.promo;
   const past = day.state === "past";
   const ctaOff = past && !PAST_CTA_ENABLED;
@@ -287,9 +269,64 @@ function PromoModal({ day, onClose }) {
     };
   }, [onClose]);
 
+  // Poslije slota: baner "izleti" iz valjaka na svoje mjesto, pa se sadržaj pojavi red po red (kao u RS-u)
+  useEffect(() => {
+    if (!revealFrom || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const easing = "cubic-bezier(.3,.7,.2,1)";
+    [...(bodyRef.current?.children || []), footRef.current].filter(Boolean).forEach((el, i) => {
+      el.animate(
+        [
+          { opacity: 0, transform: "translateY(10px)" },
+          { opacity: 1, transform: "none" },
+        ],
+        { duration: 340, delay: 260 + i * 60, easing: "ease-out", fill: "backwards" }
+      );
+    });
+    const img = heroRef.current;
+    if (!img) return;
+    let clone;
+    const fly = () => {
+      const to = img.getBoundingClientRect();
+      if (!to.width) return;
+      // kopija slike iznad svega, da je ne odsijeku ivice pop-upa dok leti
+      clone = img.cloneNode();
+      Object.assign(clone.style, {
+        position: "fixed",
+        left: `${to.left}px`,
+        top: `${to.top}px`,
+        width: `${to.width}px`,
+        height: `${to.height}px`,
+        margin: "0",
+        zIndex: "60",
+        borderRadius: "10px",
+        pointerEvents: "none",
+      });
+      document.body.appendChild(clone);
+      img.style.opacity = "0";
+      const a = clone.animate(
+        [
+          {
+            transformOrigin: "0 0",
+            transform: `translate(${revealFrom.left - to.left}px, ${revealFrom.top - to.top}px) scale(${revealFrom.width / to.width}, ${revealFrom.height / to.height})`,
+          },
+          { transformOrigin: "0 0", transform: "none", borderRadius: "0px" },
+        ],
+        { duration: 560, easing }
+      );
+      a.onfinish = () => {
+        img.style.opacity = "";
+        clone.remove();
+      };
+    };
+    if (img.complete) fly();
+    else img.addEventListener("load", fly, { once: true });
+    return () => clone?.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className={s.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={s.modalWrap}>
+      <div className={cx(s.modalWrap, revealFrom && s.noPop)}>
       {/* lampice po bordo ramu — isto kao kod slot reveal-a */}
       <svg className={s.lights} aria-hidden="true">
         {[0, 1].map((k) => (
@@ -314,7 +351,7 @@ function PromoModal({ day, onClose }) {
 
         {/* naslovna: baner promocije (prva slika iz opisa) ili praznična pozadina */}
         <div className={cx(s.hero, !showHero && s.heroPlain, ctaOff && s.heroPast)}>
-          {showHero && <img src={hero} alt="" className={s.heroImg} onError={() => setHeroBroken(true)} />}
+          {showHero && <img ref={heroRef} src={hero} alt="" className={s.heroImg} onError={() => setHeroBroken(true)} />}
         </div>
 
         {/* poklon samo kad nema banera — inače promociju već predstavlja slika na vrhu */}
@@ -329,7 +366,7 @@ function PromoModal({ day, onClose }) {
 
         )}
 
-        <div className={s.mBody}>
+        <div ref={bodyRef} className={s.mBody}>
           <div className={s.meta}>
             <span className={cx(s.pill, ctaOff ? s.pillDone : s.pillDate)}>
               {ctaOff ? "Završeno · " : ""}
@@ -347,7 +384,7 @@ function PromoModal({ day, onClose }) {
         </div>
 
         {(hasLink || ctaOff) && (
-          <div className={s.mFoot}>
+          <div ref={footRef} className={s.mFoot}>
             {ctaOff ? (
               <p className={s.doneNote}>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -442,6 +479,7 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
   );
 
   const [slotIdx, setSlotIdx] = useState(null);
+  const [revealFrom, setRevealFrom] = useState(null); // pozicija valjaka za prelaz banera u pop-up
 
   const onGift = useCallback((i) => {
     const day = days[i];
@@ -452,11 +490,14 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
     try {
       seen = localStorage.getItem(SLOT_KEY + day.key) === "1";
     } catch {}
-    if (day.promo.slot) setSlotIdx({ i, seen });
+    if (day.promo.slot && !seen) setSlotIdx(i);
     else setModalIdx(i);
   }, [days]);
 
-  const closeModal = useCallback(() => setModalIdx(null), []);
+  const closeModal = useCallback(() => {
+    setModalIdx(null);
+    setRevealFrom(null);
+  }, []);
   const closeSlot = useCallback(() => setSlotIdx(null), []);
 
   // slike za valjke: baneri (prva slika iz opisa) otvorenih promocija u periodu
@@ -577,13 +618,17 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
 
       {/* portal na <body>: pop-up je iznad svega (zaglavlje sa logom ima viši sloj od kalendara) */}
       {slotIdx !== null &&
-        days[slotIdx.i]?.promo &&
+        days[slotIdx]?.promo &&
         createPortal(
           <div className={cx(s.portal, adventDisplay.variable, adventBody.variable)}>
             <SlotOverlay
-              day={days[slotIdx.i]}
-              alreadyOpened={slotIdx.seen}
-              pool={slotPool.filter((src) => src !== splitHero(days[slotIdx.i].promo.richHtml || "").hero).slice(0, 12)}
+              day={days[slotIdx]}
+              pool={slotPool.filter((src) => src !== splitHero(days[slotIdx].promo.richHtml || "").hero).slice(0, 12)}
+              onDone={(from) => {
+                setRevealFrom(from || null);
+                setModalIdx(slotIdx);
+                setSlotIdx(null);
+              }}
               onClose={closeSlot}
             />
           </div>,
@@ -594,7 +639,7 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
         days[modalIdx]?.promo &&
         createPortal(
           <div className={cx(s.portal, adventDisplay.variable, adventBody.variable)}>
-            <PromoModal day={days[modalIdx]} onClose={closeModal} />
+            <PromoModal day={days[modalIdx]} onClose={closeModal} revealFrom={revealFrom} />
           </div>,
           document.body
         )}
