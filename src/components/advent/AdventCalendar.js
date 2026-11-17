@@ -200,9 +200,6 @@ function PromoModal({ day, onClose }) {
               {fmtShort(day)}
               {day.y}.
             </span>
-            <span className={cx(s.pill, s.pillType)}>
-              {promo.type === "weekly" ? "Sedmična promocija" : "Ekskluzivna promocija"}
-            </span>
           </div>
           <h2 id="advent-modal-title" className={s.mTitle}>
             {promo.title}
