@@ -207,10 +207,17 @@ function PromoModal({ day, onClose }) {
           {showHero && <img src={hero} alt="" className={s.heroImg} onError={() => setHeroBroken(true)} />}
         </div>
 
-        {/* poklon kao medaljon preko donje ivice naslovne */}
-        <div className={cx(s.medal, showHero && s.medalBelow)}>
-          <GiftArt promo={promo} className={s.medalGift} />
-        </div>
+        {/* poklon samo kad nema banera — inače promociju već predstavlja slika na vrhu */}
+
+        {!showHero && (
+
+          <div className={s.medal}>
+
+            <GiftArt promo={promo} className={s.medalGift} />
+
+          </div>
+
+        )}
 
         <div className={s.mBody}>
           <div className={s.meta}>
