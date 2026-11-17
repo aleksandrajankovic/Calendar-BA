@@ -27,7 +27,8 @@
   padding: clamp(10px, 2vw, 22px);
   border-radius: 6px;
   background: linear-gradient(180deg, #4a1620, #36101a);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(209, 170, 85, 0.55);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 /* desktop: kao pravi kalendar — kolone su dani u sedmici (pon–ned) */
