@@ -1,15 +1,23 @@
 "use client";
-import { monthHref } from "@/lib/calendarUrls";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import RichEditor from "@/components/RichEditor";
-import ImageGalleryModal from "../../components/ImageGalleryModal";
-
-// jezici za tabove
-const LANGS = [
-  { code: "ba", label: "Bosnian" },
-  { code: "en", label: "English" },
-];
+import { isValidLink } from "@/lib/validate";
+import {
+  ButtonColorPicker,
+  DescriptionField,
+  EditorShell,
+  EffectToggles,
+  IconField,
+  LinkField,
+  PillSelector,
+  Section,
+  TextField,
+  ThemeNotice,
+  themeFeatures,
+  useMonthTheme,
+  openCalendarPreview,
+  useDirty,
+} from "../../components/PromoEditorFields";
 
 // kategorije za promo
 const CATEGORIES = [
@@ -17,10 +25,9 @@ const CATEGORIES = [
   { value: "CASINO", label: "Casino" },
   { value: "MISSIONS", label: "Missions" },
   { value: "ALL", label: "All" },
-  { value: "GOLD", label: "Zlatna lopta" },
 ];
+const GOLD = { value: "GOLD", label: "Zlatna lopta" };
 
-// faza nokaut turnira — oznaka na lopti u football temi (kombinuje se sa kategorijom)
 const KNOCKOUT_OPTIONS = [
   { value: null, label: "Nema" },
   { value: "QUARTER_FINAL", label: "⚽ Četvrtfinale (1/4)" },
@@ -48,11 +55,10 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
     const m = initial?.month ?? now.getMonth(); // 0..11
     const d = initial?.day ?? now.getDate();
 
-    const baseTranslations = initial?.translations || {};
-    const mainLang = LANGS[0].code; 
+    const baseTranslations = { ...(initial?.translations || {}) }; // kopija — ne mijenjamo props
 
-    if (!baseTranslations[mainLang]) {
-      baseTranslations[mainLang] = {
+    if (!baseTranslations["ba"]) {
+      baseTranslations["ba"] = {
         title: initial?.title ?? "",
         button: initial?.button ?? "",
         rich: initial?.rich ?? null,
@@ -73,19 +79,18 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
       scratch: !!initial?.scratch,
       slot: !!initial?.slot,
       flipCard: !!initial?.flipCard,
-      knockoutPhase: initial?.knockoutPhase || null,
       buttonColor: initial?.buttonColor ?? "green",
 
       translations: baseTranslations,
 
       category: initial?.category || "ALL",
+      knockoutPhase: initial?.knockoutPhase || null,
     };
   }, [initial]);
 
   const [form, setForm] = useState(seed);
   const [saving, setSaving] = useState(false);
-  const [activeLang, setActiveLang] = useState(LANGS[0].code);
-  const [showIconGallery, setShowIconGallery] = useState(false);
+  const activeLang = "ba";
 
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
@@ -106,14 +111,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
     });
   }
 
-  function handlePreviewCalendar() {
-    const y = form.year || new Date().getFullYear();
-    const m =
-      typeof form.month === "number" ? form.month : new Date().getMonth();
-
-    const url = monthHref(y, m);
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
+  const dirty = useDirty(seed, form);
 
   async function save() {
     const currentT = form.translations?.[activeLang] || {};
@@ -124,6 +122,10 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
     }
     if (!currentT.richHtml?.trim()) {
       toast.error("Content is required for the active language.");
+      return;
+    }
+    if (!isValidLink(currentT.link)) {
+      toast.error("Button link must start with https://, http:// or /.");
       return;
     }
 
@@ -159,7 +161,6 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         scratch: !!form.scratch,
         slot: !!form.slot,
         flipCard: !!form.flipCard,
-        knockoutPhase: form.knockoutPhase || null,
         buttonColor: form.buttonColor || "green",
 
         translations,
@@ -170,6 +171,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         rich: mainT.rich || null,
         richHtml: mainT.richHtml || "",
         category: form.category || "ALL",
+        knockoutPhase: form.knockoutPhase || null,
       };
 
       const res = await fetch(url, {
@@ -191,382 +193,106 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
   }
 
   const currentT = form.translations?.[activeLang] || {};
+  const theme = useMonthTheme(form.year, form.month);
+  const show = themeFeatures(theme);
+
+  function onDateChange(v) {
+    const ymd = ymdFromDateInput(v);
+    setForm((prev) => (ymd ? { ...prev, dateStr: v, ...ymd } : { ...prev, dateStr: v }));
+  }
 
   return (
-    <>
-      {/* Top bar: Back + title + actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="text-sm text-[#AC1C09] hover:underline"
-          >
-            ← Back
-          </button>
-          <div className="text-base font-semibold text-neutral-900">
-            New Special Promotion
-          </div>
+    <EditorShell
+      heading={
+        <div className="text-base font-semibold text-neutral-900">
+          {form.id
+            ? "Edit Special Promotion"
+            : initial?.duplicateOf
+              ? `Duplicate of “${initial.duplicateOf}”`
+              : "New Special Promotion"}
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-[18px] py-[7px] rounded bg-[#C43D2F] font-condensed text-white text-xs hover:brightness-110"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving}
-            className="px-[18px] py-[7px] rounded bg-[#17BB00] text-white text-xs font-condensed hover:brightness-110 disabled:opacity-60"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-6 bg-white border border-neutral-200 rounded-lg shadow-sm p-4 md:p-5 space-y-5">
-        {/* Tabs + Active */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
-          <div className="flex items-center gap-2">
-            {LANGS.map((lng) => (
-              <button
-                key={lng.code}
-                type="button"
-                onClick={() => setActiveLang(lng.code)}
-                className={`px-3 py-1.5 text-xs border-b-2 ${
-                  activeLang === lng.code
-                    ? "border-[#AC1C09] text-[#AC1C09] font-semibold"
-                    : "border-transparent text-neutral-600 hover:text-neutral-900"
-                }`}
-              >
-                {lng.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Scratch toggle */}
-        <div className="pb-2 space-y-2">
-          {/* Grebalica i slot se isključuju — uključivanje jednog gasi drugi */}
-          <label className="flex items-center gap-2 text-sm text-neutral-800">
-            <input
-              type="checkbox"
-              checked={!!form.scratch}
-              onChange={(e) => {
-                set("scratch", e.target.checked);
-                if (e.target.checked) set("slot", false);
-              }}
-            />
-            Enable scratch card
-          </label>
-          <label className="flex items-center gap-2 text-sm text-neutral-800">
-            <input
-              type="checkbox"
-              checked={!!form.slot}
-              onChange={(e) => {
-                set("slot", e.target.checked);
-                if (e.target.checked) {
-                  set("scratch", false);
-                  set("flipCard", false);
-                }
-              }}
-            />
-            Enable slot reveal
-            <span className="text-xs text-neutral-400">(reels spin the month&apos;s promo images, then stop on this one)</span>
-          </label>
-          {!!form.scratch && (
-            <label className="flex items-center gap-2 text-sm text-neutral-600 pl-5">
-              <input
-                type="checkbox"
-                checked={!!form.flipCard}
-                onChange={(e) => set("flipCard", e.target.checked)}
-              />
-              Flip card effect (image → promo details)
-            </label>
-          )}
-        </div>
-
-        {/* Active toggle + Preview */}
-        <div className="pb-2">
-          <label className="flex items-center justify-between gap-2 text-sm text-neutral-800">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => set("active", !form.active)}
-                className={`h-5 w-5 rounded-sm border flex items-center justify-center ${
-                  form.active
-                    ? "bg-[#17BB00] border-[#17BB00]"
-                    : "bg-white border-neutral-400"
-                }`}
-              >
-                {form.active && (
-                  <span className="text-white text-xs leading-none">
-                    <svg
-                      width="13"
-                      height="10"
-                      viewBox="0 0 13 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M11.2667 1L4.20833 8.05833L1 4.85"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                )}
-              </button>
-              <span className="text-[#989898] text-xs">Active</span>
-            </div>
-            <button
-              type="button"
-              onClick={handlePreviewCalendar}
-              className="px-[18px] py-[7px] rounded bg-[#17BB00] text-white text-xs font-condensed hover:brightness-110"
-            >
-              Preview calendar
-            </button>
-          </label>
-        </div>
-
-        {/* Title + Date */}
-        <div className="grid md:grid-cols-2 gap-4 text-neutral-800">
-          <label className="block">
-            <span className="text-sm mb-1 inline-block">
-              Title ({activeLang.toUpperCase()})
-            </span>
-            <input
-              className="w-full border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
-              value={currentT.title || ""}
-              onChange={(e) =>
-                setTranslationField(activeLang, "title", e.target.value)
-              }
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm mb-1 inline-block">Date from</span>
+      }
+      active={form.active}
+      onToggleActive={() => set("active", !form.active)}
+      onPreview={() => openCalendarPreview(form.year, form.month)}
+      onCancel={onCancel}
+      onSave={save}
+      saving={saving}
+      dirty={dirty}
+    >
+      <Section title="Content">
+        <div className="grid md:grid-cols-[minmax(0,1fr)_200px] gap-4">
+          <TextField
+            label="Title"
+            value={currentT.title}
+            onChange={(v) => setTranslationField(activeLang, "title", v)}
+          />
+          <label className="block text-sm text-neutral-800">
+            <span className="mb-1 inline-block">Date</span>
             <input
               type="date"
               className="w-full border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
               value={form.dateStr}
-              onChange={(e) => {
-                const v = e.target.value;
-                const ymd = ymdFromDateInput(v);
-                if (ymd) {
-                  setForm((prev) => ({
-                    ...prev,
-                    dateStr: v,
-                    year: ymd.year,
-                    month: ymd.month,
-                    day: ymd.day,
-                  }));
-                } else {
-                  setForm((prev) => ({ ...prev, dateStr: v }));
-                }
-              }}
+              onChange={(e) => onDateChange(e.target.value)}
             />
           </label>
         </div>
 
-        {/* Button label + Button link + Button Color */}
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1.5fr)_minmax(0,2fr)_auto] items-end">
-          <label className="block text-sm text-neutral-800">
-            <span className="mb-1 inline-block">
-              Button label ({activeLang.toUpperCase()})
-            </span>
-            <input
-              className="w-full border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
-              value={currentT.button || ""}
-              onChange={(e) =>
-                setTranslationField(activeLang, "button", e.target.value)
-              }
-            />
-          </label>
+        <DescriptionField
+          label="Description"
+          activeLang={activeLang}
+          currentT={currentT}
+          setTranslationField={setTranslationField}
+        />
+      </Section>
 
-          <label className="block text-sm text-neutral-800">
-            <span className="mb-1 inline-block">
-              Button link ({activeLang.toUpperCase()})
-            </span>
-            <input
-              className="w-full border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
-              value={currentT.link || ""}
-              onChange={(e) =>
-                setTranslationField(activeLang, "link", e.target.value)
-              }
-              placeholder="https://..."
-            />
-          </label>
-
-          {/* Button Color */}
-          <div className="flex flex-col items-start md:items-end w-full md:w-auto">
-            <span className="mb-1 inline-block text-sm text-neutral-800">
-              Button Color
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => set("buttonColor", "yellow")}
-                className={`h-7 w-7 rounded-full flex items-center justify-center border transition
-    ${form.buttonColor === "yellow" ? "border-black" : "border-transparent"}`}
-                aria-label="Yellow button"
-              >
-                <span className="h-6 w-6 rounded-full bg-[#FFCB05] flex items-center justify-center">
-                  {form.buttonColor === "yellow" && (
-                    <span className="text-black text-[10px] leading-none">
-                      ✓
-                    </span>
-                  )}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => set("buttonColor", "green")}
-                className={`h-7 w-7 rounded-full flex items-center justify-center border transition
-          ${
-            form.buttonColor === "green" ? "border-black" : "border-transparent"
-          }`}
-                aria-label="Green button"
-              >
-                <span className="h-6 w-6 rounded-full bg-[#17BB00] flex items-center justify-center">
-                  {form.buttonColor === "green" && (
-                    <span className="text-white text-[10px] leading-none">
-                      ✓
-                    </span>
-                  )}
-                </span>
-              </button>
-            </div>
-          </div>
+      <Section title="Button">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-start">
+          <TextField
+            label="Label"
+            value={currentT.button}
+            onChange={(v) => setTranslationField(activeLang, "button", v)}
+          />
+          <LinkField
+            label="Link"
+            value={currentT.link}
+            onChange={(v) => setTranslationField(activeLang, "link", v)}
+          />
+          <ButtonColorPicker value={form.buttonColor} onChange={(v) => set("buttonColor", v)} />
         </div>
+      </Section>
 
-        {/* Category selector */}
-        <div className="mt-2">
-          <span className="mb-1 inline-block text-sm text-neutral-800">
-            Category
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => {
-              const selected = form.category === cat.value;
-              return (
-                <button
-                  key={cat.value}
-                  type="button"
-                  onClick={() => set("category", cat.value)}
-                  className={
-                    "px-3 py-1 rounded-full text-[11px] font-medium border transition " +
-                    (selected
-                      ? "bg-[#17BB00] text-white border-[#17BB00]"
-                      : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100")
-                  }
-                >
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <ThemeNotice theme={theme} year={form.year} month={form.month} />
 
-        {/* Knockout faza (football tema) */}
-        <div className="mt-2">
-          <span className="mb-1 inline-block text-sm text-neutral-800">
-            Knockout faza <span className="text-neutral-400 font-normal">(football tema, kombinuje se sa kategorijom)</span>
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {KNOCKOUT_OPTIONS.map((opt) => {
-              const selected = (form.knockoutPhase || null) === opt.value;
-              return (
-                <button
-                  key={opt.label}
-                  type="button"
-                  onClick={() => set("knockoutPhase", opt.value)}
-                  className={
-                    "px-3 py-1 rounded-full text-[11px] font-medium border transition " +
-                    (selected
-                      ? "bg-[#17BB00] text-white border-[#17BB00]"
-                      : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100")
-                  }
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Icon */}
-        <div className="mt-3">
-          <label className="block text-sm text-neutral-800">
-            <span className="mb-1 inline-block">Icon</span>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                className="flex-1 min-w-0 border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
-                value={form.icon || ""}
-                onChange={(e) => set("icon", e.target.value)}
-                placeholder="/uploads/promo-icon.webp"
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowIconGallery(true)}
-                className="shrink-0 font-condensed inline-flex items-center justify-center px-4 py-[10px] rounded bg-[#1F2933] text-white text-xs hover:brightness-110 whitespace-nowrap"
-              >
-                Choose from gallery
-              </button>
-            </div>
-
-            {form.icon && (
-              <div className="mt-2 flex items-center gap-3">
-                <img
-                  src={form.icon}
-                  alt="icon preview"
-                  className="w-8 h-8 object-contain border border-neutral-200 rounded bg-white"
-                />
-                <code className="text-xs text-neutral-500 break-all">
-                  {form.icon}
-                </code>
-              </div>
-            )}
-          </label>
-        </div>
-
-        {/* Gallery modal */}
-        {showIconGallery && (
-          <ImageGalleryModal
-            onSelect={(url) => {
-              set("icon", url);
-              setShowIconGallery(false);
-            }}
-            onClose={() => setShowIconGallery(false)}
+      <Section title="Appearance">
+        <IconField value={form.icon} onChange={(v) => set("icon", v)} />
+        {show.category && (
+          <PillSelector
+            label="Category"
+            options={show.gold ? [...CATEGORIES, GOLD] : CATEGORIES}
+            value={form.category}
+            onChange={(v) => set("category", v)}
           />
         )}
+        {show.knockout && (
+        <PillSelector
+          label={
+            <>
+              Knockout faza <span className="text-neutral-400 font-normal">(kombinuje se sa kategorijom)</span>
+            </>
+          }
+          options={KNOCKOUT_OPTIONS}
+          value={form.knockoutPhase || null}
+          onChange={(v) => set("knockoutPhase", v)}
+        />
+        )}
+      </Section>
 
-        {/* Rich text editor */}
-        <div>
-          <span className="text-sm text-neutral-800 block mb-1.5">
-            Description ({activeLang.toUpperCase()})
-          </span>
-          <div className="border border-[#D0D0D0] rounded">
-            <RichEditor
-              key={activeLang}
-              initialJSON={currentT.rich || null}
-              onChange={({ json, html }) => {
-                setTranslationField(activeLang, "rich", json);
-                setTranslationField(activeLang, "richHtml", html);
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </>
+      {show.effects && (
+        <Section title="Effects">
+          <EffectToggles form={form} setField={set} />
+        </Section>
+      )}
+    </EditorShell>
   );
 }

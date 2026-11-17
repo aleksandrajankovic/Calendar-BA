@@ -109,7 +109,7 @@ const FontSizeMark = Mark.create({
         default: null,
         parseHTML: (el) => el.getAttribute("data-fs") || null,
         renderHTML: (attrs) =>
-          attrs.fs ? { "data-fs": String(attrs.fs) } : {},
+          attrs.fs ? { "data-fs": String(attrs.fs), style: `font-size: ${attrs.fs}px` } : {},
       },
     };
   },
@@ -349,10 +349,16 @@ export default function RichEditor({
           onChange={(e) => {
             const lvl = Number(e.target.value);
             const isSame = editor.isActive("heading", { level: lvl });
+            const currentAlign =
+              editor.getAttributes("paragraph").textAlign ||
+              editor.getAttributes("heading").textAlign;
             if (lvl === 0 || isSame) {
               editor.chain().focus().setParagraph().run();
             } else {
               editor.chain().focus().setHeading({ level: lvl }).run();
+            }
+            if (currentAlign && currentAlign !== "left") {
+              editor.chain().focus().setTextAlign(currentAlign).run();
             }
           }}
         >
