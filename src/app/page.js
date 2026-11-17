@@ -9,6 +9,8 @@ import Image from "next/image";
 import { verifyToken } from "@/lib/auth";
 import { BASE_URL, monthHref, isValidYear, isValidMonth } from "@/lib/calendarUrls";
 import SnowOverlay from "@/components/SnowOverlay";
+import AdventCalendar from "@/components/advent/AdventCalendar";
+import { resolveAdvent, monthsInRange, buildAdventDays } from "@/lib/advent";
 import { redirect } from "next/navigation";
 
 // -------------------------
@@ -200,11 +202,44 @@ export default async function Home({ searchParams, pageMonth }) {
     if (nearest) redirect(monthHref(nearest.y, nearest.m));
   }
 
+  // Novogodišnja (advent) tema — period može ići preko dva mjeseca (npr. 14.12. – 03.01.)
+  const advent = resolveAdvent({
+    monthBgs,
+    globalTheme: calendarSettings?.theme,
+    year,
+    month,
+  });
+
+  let adventDays = null;
+  if (advent) {
+    const months = monthsInRange(advent);
+    const monthFilter = { OR: months.map(({ y, m }) => ({ year: y, month: m })) };
+    const [advPlanRows, advSpecialRows] = await Promise.all([
+      prisma.weeklyPlan.findMany({ where: monthFilter }),
+      prisma.specialPromotion.findMany({ where: monthFilter }),
+    ]);
+    const weeklyByMonth = {};
+    for (const { y, m } of months) {
+      weeklyByMonth[`${y}-${m}`] = normWeeklyRows(
+        advPlanRows.filter((r) => r.year === y && r.month === m),
+        lang
+      );
+    }
+    adventDays = buildAdventDays({
+      range: advent,
+      specials: normalizeSpecials(advSpecialRows, lang),
+      weeklyByMonth,
+      adminPreview: isAdmin,
+    });
+  }
+
   // Load promo data
-  const [weeklyPlanRows, specialRows] = await Promise.all([
-    prisma.weeklyPlan.findMany({ where: { year, month }, orderBy: { weekday: "asc" } }),
-    prisma.specialPromotion.findMany({ where: { year, month }, orderBy: [{ day: "asc" }] }),
-  ]);
+  const [weeklyPlanRows, specialRows] = advent
+    ? [[], []]
+    : await Promise.all([
+        prisma.weeklyPlan.findMany({ where: { year, month }, orderBy: { weekday: "asc" } }),
+        prisma.specialPromotion.findMany({ where: { year, month }, orderBy: [{ day: "asc" }] }),
+      ]);
 
   const planned = normWeeklyRows(weeklyPlanRows, lang);
   const weekly  = Array.from(
@@ -222,7 +257,7 @@ export default async function Home({ searchParams, pageMonth }) {
   const logoUrl          = calendarSettings?.logoUrl           || "/img/meridianbet-ng.png";
   const bgImageUrl       = monthBg.desktop  || calendarSettings?.bgImageUrl       || "/img/bg-calendar.png";
   const bgImageUrlMobile = monthBg.mobile   || calendarSettings?.bgImageUrlMobile || bgImageUrl;
-  const activeTheme      = monthBg.theme    || calendarSettings?.theme            || "default";
+  const activeTheme      = advent ? "advent" : (monthBg.theme || calendarSettings?.theme || "default");
 
   const pos = monthBg.position || calendarSettings?.calendarPosition || "left";
   const mainJustify  = pos === "center" ? "md:justify-center" : pos === "right" ? "md:justify-end"   : "md:justify-start";
@@ -236,11 +271,16 @@ export default async function Home({ searchParams, pageMonth }) {
 
   const isMonthInactive = !!monthBg.inactive;
 
-  // Pagination
+  // Pagination — kod advent teme preskačemo mjesece koje period već pokriva
+  const pagFrom = advent ? { y: advent.start.y, m: advent.start.m } : { y: year, m: month };
+  const pagTo   = advent ? { y: advent.end.y,   m: advent.end.m   } : { y: year, m: month };
   const [prevMonth, nextMonth] = await Promise.all([
-    findNearestMonthWithPromos(year, month, "prev", inactiveSet),
-    findNearestMonthWithPromos(year, month, "next", inactiveSet),
+    findNearestMonthWithPromos(pagFrom.y, pagFrom.m, "prev", inactiveSet),
+    findNearestMonthWithPromos(pagTo.y, pagTo.m, "next", inactiveSet),
   ]);
+  const paginationLabel = advent
+    ? `${advent.start.d}.${advent.start.m + 1}. – ${advent.end.d}.${advent.end.m + 1}.`
+    : null;
 
   return (
     <div className="min-h-[100dvh] flex flex-col overflow-hidden">
@@ -330,25 +370,34 @@ export default async function Home({ searchParams, pageMonth }) {
                 prevMonth={prevMonth}
                 nextMonth={nextMonth}
                 className="text-sm"
+                label={paginationLabel}
               />
             </div>
           )}
 
-          <div className={activeTheme === "football" ? "mt-2 md:mt-1" : "mt-6"}>
-            <CalendarGrid
-              year={year}
-              month={month}
-              weekly={weekly}
-              specials={specials}
-              adminPreview={isAdmin}
-              lang={lang}
-              theme={activeTheme}
-              prevMonth={prevMonth}
-              nextMonth={nextMonth}
-            />
-          </div>
+          {advent ? (
+            <div className="mt-6">
+              <AdventCalendar days={adventDays} adminPreview={isAdmin} />
+            </div>
+          ) : (
+            <>
+              <div className={activeTheme === "football" ? "mt-2 md:mt-1" : "mt-6"}>
+                <CalendarGrid
+                  year={year}
+                  month={month}
+                  weekly={weekly}
+                  specials={specials}
+                  adminPreview={isAdmin}
+                  lang={lang}
+                  theme={activeTheme}
+                  prevMonth={prevMonth}
+                  nextMonth={nextMonth}
+                />
+              </div>
 
-          <CalendarEnhancer adminPreview={isAdmin} lang={lang} />
+              <CalendarEnhancer adminPreview={isAdmin} lang={lang} />
+            </>
+          )}
 
           {/* DESKTOP PAGINATION */}
           <div className={`hidden md:flex items-center justify-center ${activeTheme === "football" ? "mt-4" : "mt-6"}`}>
@@ -358,6 +407,7 @@ export default async function Home({ searchParams, pageMonth }) {
               prevMonth={prevMonth}
               nextMonth={nextMonth}
               className="text-base"
+              label={paginationLabel}
             />
           </div>
         </div>

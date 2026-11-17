@@ -184,6 +184,7 @@ export default function MonthlySettingsPage() {
                     { value: "default", label: "Default (vertical)" },
                     { value: "default-horizontal", label: "Default (horizontal)" },
                     { value: "football", label: "⚽ Football" },
+                    { value: "advent", label: "🎄 Novogodišnja (advent)" },
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -200,6 +201,45 @@ export default function MonthlySettingsPage() {
                     </button>
                   ))}
                 </div>
+
+                {currentBg.theme === "advent" && (
+                  <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3 space-y-2">
+                    <p className="text-sm font-medium text-neutral-800">Advent period</p>
+                    <p className="text-xs text-neutral-500">
+                      Days shown as doors, e.g. 14 Dec – 3 Jan. The period can run into the next month; that
+                      month then shows the same board automatically (unless it has its own theme override).
+                      Leave empty to use this whole month. Max 62 days.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="flex items-center gap-2 text-xs text-neutral-600">
+                        From
+                        <input
+                          id="advent-start"
+                          type="date"
+                          className="border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
+                          value={currentBg.adventStart || ""}
+                          onChange={(e) => setField("adventStart", e.target.value || null)}
+                        />
+                      </label>
+                      <label className="flex items-center gap-2 text-xs text-neutral-600">
+                        To
+                        <input
+                          id="advent-end"
+                          type="date"
+                          className="border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
+                          value={currentBg.adventEnd || ""}
+                          onChange={(e) => setField("adventEnd", e.target.value || null)}
+                        />
+                      </label>
+                    </div>
+                    {currentBg.adventStart && currentBg.adventEnd && currentBg.adventEnd < currentBg.adventStart && (
+                      <p className="text-xs text-red-600">End date is before start date — the whole month will be used instead.</p>
+                    )}
+                    <p className="text-xs text-neutral-500">
+                      Gift behind each door = the promo&apos;s <strong>icon</strong> (Specials / Weekly). Transparent PNG/WebP, square, ~256px.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* ── TITLE PER MONTH ── */}
@@ -350,6 +390,8 @@ export default function MonthlySettingsPage() {
                         bg.inactive && "⚠ deactivated",
                         bg.theme === "football" && "⚽ football",
                         bg.theme === "default-horizontal" && "↔ horizontal",
+                        bg.theme === "advent" &&
+                          `🎄 advent${bg.adventStart && bg.adventEnd ? ` ${bg.adventStart} → ${bg.adventEnd}` : ""}`,
                         bg.titleBa && "title",
                         bg.position && `position: ${bg.position}`,
                         bg.desktop  && "desktop bg",

@@ -1,0 +1,339 @@
+// src/components/advent/AdventCalendar.js
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { adventDisplay, adventBody } from "@/app/fonts";
+import { ADVENT_SPRITE, TILE_ART } from "./adventArt";
+import s from "./AdventCalendar.module.css";
+
+const MONTHS = ["januar", "februar", "mart", "april", "maj", "juni", "juli", "august", "septembar", "oktobar", "novembar", "decembar"];
+const WEEKDAYS = ["nedjelja", "ponedjeljak", "utorak", "srijeda", "četvrtak", "petak", "subota"];
+const TONES = [s.tBordeaux, s.tCream, s.tOlive, s.tBeige];
+const STORAGE_KEY = "advent-opened";
+
+// Da li se CTA prošlih promocija može kliknuti. Čeka potvrdu od BA marketinga.
+const PAST_CTA_ENABLED = false;
+
+const fmtShort = (d) => `${d.d}.${d.m + 1}.`;
+const cx = (...a) => a.filter(Boolean).join(" ");
+
+function readOpened() {
+  try {
+    const v = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return new Set(Array.isArray(v) ? v : []);
+  } catch {
+    return new Set();
+  }
+}
+function writeOpened(set) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...set].slice(-60)));
+  } catch {}
+}
+
+function GiftArt({ promo, className }) {
+  if (promo?.icon) return <img src={promo.icon} alt="" className={className} loading="lazy" />;
+  return (
+    <svg className={className} aria-hidden="true">
+      <use href="#adv-g-gift" />
+    </svg>
+  );
+}
+
+function Door({ day, index, isOpen, canOpen, adminPreview, hint, extraClass, onDoor, onGift }) {
+  const label = `${day.d}. ${MONTHS[day.m]}`;
+  const tone = TONES[(index * 3 + Math.floor(index / 7)) % 4];
+  const state = s[day.state];
+
+  return (
+    <div
+      className={cx(s.cell, tone, state, isOpen && s.open, adminPreview && day.state === "future" && s.adminOpenable, hint?.shake && s.shake, extraClass)}
+    >
+      <div className={s.recess}>
+        {day.promo ? (
+          <button
+            type="button"
+            className={s.gift}
+            aria-label={`Poklon: ${day.promo.title || label}`}
+            tabIndex={isOpen ? 0 : -1}
+            onClick={() => isOpen && onGift(index)}
+          >
+            <GiftArt promo={day.promo} />
+          </button>
+        ) : (
+          <svg className={s.empty} aria-hidden="true">
+            <use href="#adv-i-star" />
+          </svg>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className={s.door}
+        aria-label={`${label}${day.state === "future" && !canOpen ? ", zaključano" : day.state === "today" ? ", danas – otvori" : ""}`}
+        aria-hidden={isOpen || undefined}
+        tabIndex={isOpen ? -1 : 0}
+        onClick={() => onDoor(index)}
+      >
+        <span className={cx(s.face, s.front)}>
+          <span className={s.num}>{day.d}</span>
+          <span className={s.mon}>{MONTHS[day.m].slice(0, 3)}</span>
+          <svg className={s.ill} aria-hidden="true">
+            <use href={`#adv-i-${TILE_ART[index % TILE_ART.length]}`} />
+          </svg>
+        </span>
+        <span className={cx(s.face, s.back)} />
+      </button>
+
+      {day.state === "future" && (
+        <span className={s.lock} aria-hidden="true">
+          <svg>
+            <use href="#adv-lock" />
+          </svg>
+        </span>
+      )}
+      {day.state === "today" && <span className={s.tag}>Danas</span>}
+      {hint && <span className={s.hint}>{hint.text}</span>}
+    </div>
+  );
+}
+
+function PromoModal({ day, onClose }) {
+  const closeRef = useRef(null);
+  const promo = day.promo;
+  const past = day.state === "past";
+  const ctaOff = past && !PAST_CTA_ENABLED;
+  const hasLink = promo.link && promo.link !== "#";
+
+  useEffect(() => {
+    const prevFocus = document.activeElement;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      prevFocus?.focus?.({ preventScroll: true });
+    };
+  }, [onClose]);
+
+  return (
+    <div className={s.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby="advent-modal-title">
+        <button ref={closeRef} type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
+          ×
+        </button>
+        <GiftArt promo={promo} className={s.mGift} />
+        <div className={s.meta}>
+          <span className={cx(s.pill, s.pillDate)}>
+            {fmtShort(day)}
+            {day.y}.
+          </span>
+          <span className={cx(s.pill, s.pillType)}>
+            {promo.type === "weekly" ? "Sedmična promocija" : "Ekskluzivna promocija"}
+          </span>
+        </div>
+        <h2 id="advent-modal-title" className={s.mTitle}>
+          {promo.title}
+        </h2>
+        {promo.richHtml && <div className={s.rich} dangerouslySetInnerHTML={{ __html: promo.richHtml }} />}
+        {ctaOff && <span className={s.expired}>Ova promocija je završena.</span>}
+        {hasLink && (
+          ctaOff ? (
+            <span className={cx(s.cta, s.ctaOff)} aria-disabled="true">
+              {promo.button}
+            </span>
+          ) : (
+            <a
+              href={promo.link}
+              target="_blank"
+              rel="noreferrer"
+              className={cx(s.cta, promo.buttonColor === "yellow" ? s.ctaYellow : s.ctaGreen)}
+            >
+              {promo.button}
+            </a>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function AdventCalendar({ days = [], adminPreview = false }) {
+  const todayIdx = days.findIndex((d) => d.state === "today");
+  const initialSel = todayIdx >= 0 ? todayIdx : days[0]?.state === "future" ? 0 : Math.max(days.length - 1, 0);
+
+  const [opened, setOpened] = useState(() => new Set());
+  const [ready, setReady] = useState(false);
+  const [modalIdx, setModalIdx] = useState(null);
+  const [hint, setHint] = useState(null); // { i, text, shake, n }
+  const [sel, setSel] = useState(initialSel);
+  const [slide, setSlide] = useState(0);
+  const chipsRef = useRef(null);
+  const touch = useRef({ x: 0, y: 0, swiped: false });
+
+  // Stanje otvorenih vrata pamti se samo u browseru korisnika.
+  useEffect(() => {
+    setOpened(readOpened());
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setReady(true)));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    if (!hint) return;
+    const t = setTimeout(() => setHint(null), 1600);
+    return () => clearTimeout(t);
+  }, [hint]);
+
+  useEffect(() => {
+    const strip = chipsRef.current;
+    const chip = strip?.children[sel];
+    if (!chip) return;
+    strip.scrollTo({ left: chip.offsetLeft - strip.clientWidth / 2 + chip.offsetWidth / 2, behavior: slide ? "smooth" : "auto" });
+  }, [sel, slide]);
+
+  const isOpen = (day) => day.state === "past" || opened.has(day.key);
+  const canOpen = (day) => day.state !== "future" || adminPreview;
+
+  const onDoor = useCallback(
+    (i) => {
+      if (touch.current.swiped) {
+        touch.current.swiped = false;
+        return;
+      }
+      const day = days[i];
+      if (!day || isOpen(day)) return;
+      if (!canOpen(day)) {
+        setHint((h) => ({ i, text: `Otvara se ${fmtShort(day)}`, shake: true, n: (h?.n || 0) + 1 }));
+        return;
+      }
+      setOpened((prev) => {
+        const next = new Set(prev).add(day.key);
+        if (day.state === "today") writeOpened(next);
+        return next;
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [days, opened, adminPreview]
+  );
+
+  const onGift = useCallback((i) => {
+    if (days[i]?.promo) setModalIdx(i);
+  }, [days]);
+
+  const closeModal = useCallback(() => setModalIdx(null), []);
+
+  const go = (n) => {
+    if (n < 0 || n >= days.length || n === sel) return;
+    setSlide(n > sel ? 1 : -1);
+    setSel(n);
+  };
+
+  if (!days.length) return null;
+
+  const first = days[0];
+  const last = days[days.length - 1];
+  const selDay = days[sel];
+  const selStateLabel =
+    selDay.state === "today" ? "Danas" : selDay.state === "past" ? "Završeno" : "Zaključano";
+
+  const doorProps = (day, i) => ({
+    day,
+    index: i,
+    isOpen: isOpen(day),
+    canOpen: canOpen(day),
+    adminPreview,
+    hint: hint && hint.i === i ? hint : null,
+    onDoor,
+    onGift,
+  });
+
+  return (
+    <div className={cx(s.root, adventDisplay.variable, adventBody.variable, !ready && s.noAnim)}>
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+        <defs dangerouslySetInnerHTML={{ __html: ADVENT_SPRITE }} />
+      </svg>
+
+      <div className={s.range}>
+        {first.d}. {MONTHS[first.m]} – {last.d}. {MONTHS[last.m]}
+      </div>
+
+      <div className={s.board}>
+        {/* DESKTOP: cijela tabla */}
+        <div className={s.grid}>
+          {days.map((day, i) => (
+            <Door key={day.key} {...doorProps(day, i)} />
+          ))}
+        </div>
+
+        {/* MOBILNI: jedno polje, swipe lijevo/desno */}
+        <div className={s.mView}>
+          <div className={s.chips} ref={chipsRef} role="tablist" aria-label="Dani">
+            {days.map((day, i) => (
+              <button
+                key={day.key}
+                type="button"
+                role="tab"
+                aria-selected={i === sel}
+                className={cx(s.chip, s[day.state], i === sel && s.sel)}
+                onClick={() => go(i)}
+              >
+                <b>{day.d}</b>
+                <small>{MONTHS[day.m].slice(0, 3)}</small>
+              </button>
+            ))}
+          </div>
+
+          <div className={s.stageRow}>
+            <button type="button" className={s.arrow} aria-label="Prethodni dan" disabled={sel === 0} onClick={() => go(sel - 1)}>
+              ‹
+            </button>
+            <div
+              className={s.stage}
+              onTouchStart={(e) => {
+                touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, swiped: false };
+              }}
+              onTouchEnd={(e) => {
+                const dx = e.changedTouches[0].clientX - touch.current.x;
+                const dy = e.changedTouches[0].clientY - touch.current.y;
+                if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                  touch.current.swiped = true;
+                  go(sel + (dx < 0 ? 1 : -1));
+                }
+              }}
+            >
+              <Door
+                key={`${selDay.key}-${sel}`}
+                {...doorProps(selDay, sel)}
+                extraClass={slide > 0 ? s.inLeft : slide < 0 ? s.inRight : ""}
+              />
+            </div>
+            <button
+              type="button"
+              className={s.arrow}
+              aria-label="Sljedeći dan"
+              disabled={sel === days.length - 1}
+              onClick={() => go(sel + 1)}
+            >
+              ›
+            </button>
+          </div>
+
+          <div className={s.cap}>
+            <span className={s.capState}>{selStateLabel}</span>
+            <span className={s.capDate}>
+              {WEEKDAYS[selDay.weekday]}, {selDay.d}. {MONTHS[selDay.m]}
+            </span>
+            <span className={s.capHint}>Prevuci lijevo ili desno za ostale dane</span>
+          </div>
+        </div>
+      </div>
+
+      {modalIdx !== null && days[modalIdx]?.promo && <PromoModal day={days[modalIdx]} onClose={closeModal} />}
+    </div>
+  );
+}

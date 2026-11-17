@@ -6,7 +6,8 @@ import prisma from "@/lib/db";
 import { getAdminFromRequest } from "@/lib/auth";
 
 const VALID_POS = ["left", "center", "right"];
-const VALID_THEMES = ["default", "default-horizontal", "football"];
+const VALID_THEMES = ["default", "default-horizontal", "football", "advent"];
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_SEO_META = {
   ba: { title: "Kalendar Promocija | Meridianbet", description: "Otkrijte dnevne promocije i iskoristite ekskluzivne nagrade uz Meridianbet Kalendar Promocija." },
 };
@@ -83,8 +84,11 @@ export async function PUT(req) {
           const titleBa  = (val.titleBa  || "").trim() || null;
           const inactive = val.inactive === true ? true : null;
           const theme    = VALID_THEMES.includes(val.theme) ? val.theme : null;
+          const isAdvent = theme === "advent";
+          const adventStart = isAdvent && YMD.test(val.adventStart || "") ? val.adventStart : null;
+          const adventEnd   = isAdvent && YMD.test(val.adventEnd   || "") ? val.adventEnd   : null;
           if (desktop || mobile || position || titleBa || inactive || theme)
-            out[key] = { desktop, mobile, position, titleBa, inactive, theme };
+            out[key] = { desktop, mobile, position, titleBa, inactive, theme, adventStart, adventEnd };
         }
       }
       cleaned = Object.keys(out).length ? out : null;

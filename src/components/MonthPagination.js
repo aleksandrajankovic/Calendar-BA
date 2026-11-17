@@ -1,6 +1,6 @@
 import { monthHref } from "@/lib/calendarUrls";
 
-export default function MonthPagination({ year, month, prevMonth, nextMonth, className = "", labelClassName = "" }) {
+export default function MonthPagination({ year, month, prevMonth, nextMonth, className = "", labelClassName = "", label = null }) {
   const raw = new Date(year, month, 1).toLocaleString("bs-BA", { month: "long" });
   const monthLabel = raw.charAt(0).toUpperCase() + raw.slice(1);
 
@@ -15,7 +15,7 @@ export default function MonthPagination({ year, month, prevMonth, nextMonth, cla
       )}
 
       <span className={`min-w-[140px] text-center font-semibold ${labelClassName}`}>
-        {monthLabel} <span className="ml-1 opacity-80">{year}</span>
+        {label ?? <>{monthLabel} <span className="ml-1 opacity-80">{year}</span></>}
       </span>
 
       {nextMonth ? (
