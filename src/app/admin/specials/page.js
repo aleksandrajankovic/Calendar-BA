@@ -6,9 +6,7 @@ import toast from "react-hot-toast";
 import SpecialEditor from "./components/SpecialEditor";
 import AdminTableCard from "../components/AdminTableCard";
 import { confirmDeleteToast } from "../components/ConfirmDeleteToast";
-
-const monthName = (i) =>
-  new Date(2000, i, 1).toLocaleString("en", { month: "long" });
+import MonthNavigator from "../components/MonthNavigator";
 
 export default function SpecialsAdminPage() {
   const [rows, setRows] = useState([]);
@@ -17,8 +15,8 @@ export default function SpecialsAdminPage() {
   const [showNew, setShowNew] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
-  const [filterMonth, setFilterMonth] = useState(-1);
-  const [filterYear] = useState(new Date().getFullYear());
+  const [selYear, setSelYear] = useState(new Date().getFullYear());
+  const [selMonth, setSelMonth] = useState(new Date().getMonth());
 
   useEffect(() => {
     fetch("/api/special")
@@ -33,13 +31,16 @@ export default function SpecialsAdminPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // broj promocija po mjesecu u izabranoj godini (za traku sa mjesecima)
+  const counts = useMemo(() => {
+    const c = {};
+    for (const r of rows) if (r.year === selYear) c[r.month] = (c[r.month] || 0) + 1;
+    return c;
+  }, [rows, selYear]);
+
   const filtered = useMemo(
-    () =>
-      rows.filter((r) => {
-        if (filterMonth !== -1 && r.month !== filterMonth) return false;
-        return true;
-      }),
-    [rows, filterMonth]
+    () => rows.filter((r) => r.year === selYear && r.month === selMonth),
+    [rows, selYear, selMonth]
   );
 
   async function handleDelete(id, title) {
@@ -113,24 +114,16 @@ export default function SpecialsAdminPage() {
         </button>
       </div>
 
+      <MonthNavigator
+        year={selYear}
+        month={selMonth}
+        counts={counts}
+        onChange={(y, m) => { setSelYear(y); setSelMonth(m); }}
+      />
+
       {/* Tabela u kartici */}
       <AdminTableCard
         title="Special Promotions"
-        headerRight={
-          <select
-            className="border border-neutral-300 rounded px-2 py-1 text-sm text-black bg-white"
-            value={filterMonth}
-            onChange={(e) => setFilterMonth(Number(e.target.value))}
-            title="Filter by month"
-          >
-            <option value={-1}>All months</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i} value={i}>
-                {monthName(i)}
-              </option>
-            ))}
-          </select>
-        }
         columns={[
           { key: "date", label: "Date", width: "140px" },
           { key: "title", label: "Title" },

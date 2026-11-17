@@ -9,6 +9,15 @@
   --black-white-90: #2d2d2d;
 }
 
+/* Boje admin panela (BO) — iste kao u RS-u: bg-admin-primary, text-admin-brand… */
+@theme {
+  --color-admin-primary: #17bb00;
+  --color-admin-primary-hover: #129600;
+  --color-admin-danger: #d92d20;
+  --color-admin-danger-hover: #b42318;
+  --color-admin-brand: #ac1c09;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

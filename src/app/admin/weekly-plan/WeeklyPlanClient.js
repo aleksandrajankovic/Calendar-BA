@@ -8,6 +8,9 @@ import WeeklyEditor from "../weekly/components/WeeklyEditor";
 import AdminTableCard from "../components/AdminTableCard";
 import { StatusToggleButton, IconButton } from "../components/AdminTableButtons";
 import { confirmDeleteToast } from "../components/ConfirmDeleteToast";
+import { confirmDialog } from "../components/ui/ConfirmDialog";
+import Button from "../components/ui/Button";
+import toast from "react-hot-toast";
 
 const LABELS = [
   "Monday",
@@ -53,7 +56,30 @@ export default function WeeklyPlanAdmin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
 
-  const { rows, loading, error, upsert, remove } = useWeeklyPlan(year, month);
+  const { rows, loading, error, upsert, remove, copyFromPrevious } = useWeeklyPlan(year, month);
+  const [copying, setCopying] = useState(false);
+  const prevMonthName = new Date(year, month - 1, 1).toLocaleString("en", { month: "long", year: "numeric" });
+  const monthName = new Date(year, month, 1).toLocaleString("en", { month: "long", year: "numeric" });
+
+  async function handleCopy() {
+    const existing = rows.length;
+    const note = existing ? ` The ${existing} day(s) already filled in ${monthName} stay unchanged.` : "";
+    const ok = await confirmDialog({
+      title: `Copy ${prevMonthName} into ${monthName}?`,
+      message: `Copies are added as inactive drafts — review them and activate when ready.${note}`,
+      confirmLabel: "Copy",
+    });
+    if (!ok) return;
+    setCopying(true);
+    try {
+      const count = await copyFromPrevious();
+      toast.success(count ? `Copied ${count} day(s) as inactive drafts.` : "Nothing to copy — all days are already filled.");
+    } catch (e) {
+      toast.error(e.message || "Copy failed.");
+    } finally {
+      setCopying(false);
+    }
+  }
   const [editing, setEditing] = useState(null); // weekday 0..6
 
   const initial = useMemo(() => {
@@ -101,11 +127,23 @@ export default function WeeklyPlanAdmin() {
   return (
     <>
       {/* Naslov + opis */}
-      <div className="mb-2">
-        <h1 className="text-xl font-semibold">Backoffice - Monthly Promotions</h1>
-        <p className="text-sm text-neutral-500">
-          Review and edit weekly promotions for the selected month{" "}
-        </p>
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Backoffice - Monthly Promotions</h1>
+          <p className="text-sm text-neutral-500">
+            Review and edit weekly promotions for the selected month{" "}
+          </p>
+        </div>
+        {!loading && rows.length < 7 && (
+          <Button
+            variant="secondary"
+            onClick={handleCopy}
+            disabled={copying}
+            title={`Copy ${prevMonthName} into ${monthName} as inactive drafts`}
+          >
+            {copying ? "Copying…" : `Copy from ${prevMonthName}`}
+          </Button>
+        )}
       </div>
 
       <AdminTableCard
