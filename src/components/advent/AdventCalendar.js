@@ -155,6 +155,8 @@ function PromoModal({ day, onClose }) {
   const ctaOff = past && !PAST_CTA_ENABLED;
   const hasLink = promo.link && promo.link !== "#";
   const { hero, body } = splitHero(promo.richHtml || "");
+  const [heroBroken, setHeroBroken] = useState(false);
+  const showHero = hero && !heroBroken;
 
   useEffect(() => {
     const prevFocus = document.activeElement;
@@ -182,8 +184,8 @@ function PromoModal({ day, onClose }) {
         </button>
 
         {/* naslovna: baner promocije (prva slika iz opisa) ili praznična pozadina */}
-        <div className={cx(s.hero, !hero && s.heroPlain, ctaOff && s.heroPast)}>
-          {hero && <img src={hero} alt="" className={s.heroImg} />}
+        <div className={cx(s.hero, !showHero && s.heroPlain, ctaOff && s.heroPast)}>
+          {showHero && <img src={hero} alt="" className={s.heroImg} onError={() => setHeroBroken(true)} />}
         </div>
 
         {/* poklon kao medaljon preko donje ivice naslovne */}
@@ -205,20 +207,29 @@ function PromoModal({ day, onClose }) {
           <h2 id="advent-modal-title" className={s.mTitle}>
             {promo.title}
           </h2>
+          <span className={s.ornament} aria-hidden="true">
+            ✦
+          </span>
           {body && <div className={s.rich} dangerouslySetInnerHTML={{ __html: body }} />}
         </div>
 
         {(hasLink || ctaOff) && (
           <div className={s.mFoot}>
             {ctaOff ? (
-              <p className={s.doneNote}>Ova promocija je završena. Otvori današnje polje za novi poklon.</p>
+              <p className={s.doneNote}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+                Ova promocija je završena. Otvori današnje polje za novi poklon.
+              </p>
             ) : (
               <a
                 href={promo.link}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => trackDay("cta", day)}
-                className={cx(s.cta, promo.buttonColor === "yellow" ? s.ctaYellow : s.ctaGreen)}
+                className={cx(s.cta, promo.buttonColor === "yellow" ? s.ctaGold : s.ctaOlive)}
               >
                 {promo.button}
               </a>
