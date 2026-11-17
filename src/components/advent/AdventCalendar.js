@@ -189,7 +189,7 @@ function PromoModal({ day, onClose }) {
         </div>
 
         {/* poklon kao medaljon preko donje ivice naslovne */}
-        <div className={s.medal}>
+        <div className={cx(s.medal, showHero && s.medalBelow)}>
           <GiftArt promo={promo} className={s.medalGift} />
         </div>
 

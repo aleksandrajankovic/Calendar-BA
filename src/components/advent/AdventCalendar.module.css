@@ -481,17 +481,15 @@
 .hero {
   position: relative;
   flex: none;
-  max-height: 210px;
   overflow: hidden;
   background: var(--bordeaux);
   border-bottom: 1px solid var(--gold);
 }
+/* baner se prikazuje cijel, bez odsijecanja */
 .heroImg {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 210px;
-  object-fit: cover;
 }
 .heroPlain {
   height: 96px;
@@ -518,6 +516,12 @@
   box-shadow: 0 0 0 3px var(--gold), 0 0 0 5px var(--bordeaux), 0 8px 18px rgba(0, 0, 0, 0.35);
   display: grid;
   place-items: center;
+}
+/* kad postoji baner, medaljon je ispod njega (ne prekriva sliku) */
+.medalBelow {
+  width: 64px;
+  height: 64px;
+  margin-top: 16px;
 }
 .medalGift {
   width: 68%;
