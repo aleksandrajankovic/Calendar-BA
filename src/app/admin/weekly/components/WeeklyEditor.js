@@ -13,7 +13,6 @@ import {
   PillSelector,
   Section,
   TextField,
-  ThemeNotice,
   GoldBallToggle,
   themeFeatures,
   useMonthTheme,
@@ -192,7 +191,6 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
         </div>
       </Section>
 
-      <ThemeNotice theme={theme} year={form.year} month={form.month} />
 
       <Section title="Appearance">
         <IconField value={form.icon} onChange={(v) => setField("icon", v)} />

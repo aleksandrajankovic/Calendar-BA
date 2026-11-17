@@ -12,7 +12,6 @@ import {
   PillSelector,
   Section,
   TextField,
-  ThemeNotice,
   GoldBallToggle,
   themeFeatures,
   useMonthTheme,
@@ -262,7 +261,6 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         </div>
       </Section>
 
-      <ThemeNotice theme={theme} year={form.year} month={form.month} />
 
       <Section title="Appearance">
         <IconField value={form.icon} onChange={(v) => set("icon", v)} />

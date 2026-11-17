@@ -349,12 +349,6 @@ export function EffectToggles({ form, setField }) {
 // ---------------------------------------------------------------------------
 // Tema mjeseca → koja polja imaju smisla u editoru
 // ---------------------------------------------------------------------------
-const THEME_LABELS = {
-  default: "Default (vertical)",
-  "default-horizontal": "Default (horizontal)",
-  football: "⚽ Football",
-  advent: "🎄 Novogodišnja (advent)",
-};
 
 // Ista pravila kao na javnoj stranici (src/app/page.js + lib/advent.js)
 export function themeForMonth(settings, year, month) {
@@ -406,27 +400,3 @@ export function GoldBallToggle({ value, onChange }) {
   );
 }
 
-const MONTHS_BS = [
-  "januar", "februar", "mart", "april", "maj", "juni",
-  "juli", "august", "septembar", "oktobar", "novembar", "decembar",
-];
-
-export function ThemeNotice({ theme, year, month }) {
-  if (!theme) return null;
-  const monthLabel = `${MONTHS_BS[Number(month)] || ""} ${year}`;
-  return (
-    <div
-      className={`rounded-lg border px-4 py-3 text-sm ${
-        theme === "advent" ? "border-[#d1aa55] bg-[#fbf6ea] text-neutral-800" : "border-neutral-200 bg-white text-neutral-600"
-      }`}
-    >
-      <span className="font-medium text-neutral-900">Tema za {monthLabel}:</span> {THEME_LABELS[theme] || theme}
-      {theme === "advent" && (
-        <p className="mt-1 text-xs text-neutral-600">
-          Ikonica (Icon) je poklon iza vratanca. Kategorija i efekti (grebalica, slot, flip) se u ovoj temi ne
-          koriste, pa su sakriveni. Prozirna PNG/WebP slika, kvadratna, oko 256px.
-        </p>
-      )}
-    </div>
-  );
-}
