@@ -528,7 +528,7 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
   });
 
   return (
-    <div className={cx(s.root, adventDisplay.variable, adventBody.variable, !ready && s.noAnim)}>
+    <div data-advent className={cx(s.root, adventDisplay.variable, adventBody.variable, !ready && s.noAnim)}>
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <defs dangerouslySetInnerHTML={{ __html: ADVENT_SPRITE }} />
       </svg>
