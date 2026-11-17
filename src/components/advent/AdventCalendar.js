@@ -8,6 +8,7 @@ import { ADVENT_SPRITE, TILE_ART } from "./adventArt";
 import { track, disableTracking } from "@/lib/track";
 import MonthPagination from "@/components/MonthPagination";
 import { renderSlotModal, initSlot } from "@/lib/slot/slotReveal";
+import { renderNormalModal } from "@/lib/calendarInteractions";
 import "@/lib/slot/slotReveal.css";
 import s from "./AdventCalendar.module.css";
 
@@ -161,10 +162,11 @@ function splitHero(html = "") {
 const LIGHT_COUNT = 64;
 const SLOT_KEY = "advent-slot:";
 
-// Specijalan dan: slot mašina vrti slike promocija iz perioda i staje na baner ove promocije,
-// zatim se otvara obični pop-up (onDone). Koristi isti modul kao slot reveal u ostalim temama.
-function SlotOverlay({ day, pool, onDone, onClose }) {
-  const panelRef = useRef(null);
+// Specijalan dan: isti prikaz kao slot reveal u RS-u — tamni pop-up (#promo-dialog), valjci vrte banere
+// promocija iz perioda i staju na baner ove, a zatim se slot pretvara u promociju (baner "izraste" iz
+// valjaka, zlatni datum, lampice oko kartice). Drugi put: odmah promocija (alreadyOpened).
+function SlotOverlay({ day, pool, alreadyOpened, onClose }) {
+  const contentRef = useRef(null);
   const promo = day.promo;
   const { hero } = splitHero(promo.richHtml || "");
   const image = hero || promo.icon || "";
@@ -175,7 +177,19 @@ function SlotOverlay({ day, pool, onDone, onClose }) {
       image,
       icon: promo.icon || "",
       pool: pool.length ? pool : [image].filter(Boolean),
-      promoHtml: "<div></div>", // poslije slota se otvara advent pop-up (onDone)
+      promoHtml: renderNormalModal(
+        {
+          type: promo.type,
+          title: promo.title,
+          richHtml: promo.richHtml,
+          link: promo.link,
+          button: promo.button,
+          buttonColor: promo.buttonColor,
+          promo,
+        },
+        "ba",
+        { hideLabel: true }
+      ),
       dateLabel: `${day.d}. ${MONTHS[day.m]}`,
       buttonLabel: "OTKRIJ POKLON",
     })
@@ -185,36 +199,63 @@ function SlotOverlay({ day, pool, onDone, onClose }) {
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const dispose = initSlot({
+      alreadyOpened,
       onStopped: () => {
         try {
           localStorage.setItem(SLOT_KEY + day.key, "1");
         } catch {}
         trackDay("slot", day);
       },
-      onRevealed: onDone,
     });
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
     };
+    // klik na dugme promocije → analitika
+    const onClick = (e) => {
+      if (e.target.closest('[data-track="cta"]')) trackDay("cta", day);
+    };
+    const el = contentRef.current;
+    el?.addEventListener("click", onClick);
     window.addEventListener("keydown", onKey);
-    panelRef.current?.focus({ preventScroll: true });
     return () => {
       dispose();
+      el?.removeEventListener("click", onClick);
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // isti markup i klase kao pop-up u ostalim temama (slotReveal.css se oslanja na #promo-dialog)
   return (
-    <div className={s.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={panelRef} tabIndex={-1} className={s.slotPanel} role="dialog" aria-modal="true" aria-label={`Specijalan dan, ${day.d}. ${MONTHS[day.m]}`}>
-        <button type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+    <div
+      className="fixed inset-0 z-50 bg-black/70 px-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="w-full h-full flex items-center justify-center pointer-events-none">
+        <div
+          id="promo-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Specijalan dan, ${day.d}. ${MONTHS[day.m]}`}
+          className="relative w-full max-w-[480px] max-h-[80vh] bg-[#05070D] rounded-2xl shadow-xl flex flex-col p-4 sm:p-6 pointer-events-auto"
+        >
+          <button
+            id="promo-close"
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 h-8 w-8 flex items-center justify-center rounded-full text-white/70 hover:text-white bg-white/5 hover:bg-white/10"
+            aria-label="Zatvori"
+          >
+            ✕
+          </button>
+          <div
+            id="promo-content"
+            ref={contentRef}
+            className="mt-6 overflow-y-auto pr-2"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        </div>
       </div>
     </div>
   );
@@ -411,7 +452,7 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
     try {
       seen = localStorage.getItem(SLOT_KEY + day.key) === "1";
     } catch {}
-    if (day.promo.slot && !seen) setSlotIdx(i);
+    if (day.promo.slot) setSlotIdx({ i, seen });
     else setModalIdx(i);
   }, [days]);
 
@@ -536,19 +577,14 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
 
       {/* portal na <body>: pop-up je iznad svega (zaglavlje sa logom ima viši sloj od kalendara) */}
       {slotIdx !== null &&
-        days[slotIdx]?.promo &&
+        days[slotIdx.i]?.promo &&
         createPortal(
-          <div className={cx(s.portal, adventDisplay.variable, adventBody.variable)}>
-            <SlotOverlay
-              day={days[slotIdx]}
-              pool={slotPool.filter((src) => src !== splitHero(days[slotIdx].promo.richHtml || "").hero).slice(0, 12)}
-              onDone={() => {
-                setModalIdx(slotIdx);
-                setSlotIdx(null);
-              }}
-              onClose={closeSlot}
-            />
-          </div>,
+          <SlotOverlay
+            day={days[slotIdx.i]}
+            alreadyOpened={slotIdx.seen}
+            pool={slotPool.filter((src) => src !== splitHero(days[slotIdx.i].promo.richHtml || "").hero).slice(0, 12)}
+            onClose={closeSlot}
+          />,
           document.body
         )}
 

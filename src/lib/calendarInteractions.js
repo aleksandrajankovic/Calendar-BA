@@ -9,7 +9,8 @@ import { track, disableTracking } from "./track";
 // -----------------------------
 // NORMAL MODAL (bez scratch-a)
 // -----------------------------
-function renderNormalModal(entry, lang = "ba") {
+// export: koristi ga i advent tema za promociju u slot mašini (specijalan dan)
+export function renderNormalModal(entry, lang = "ba", { hideLabel = false } = {}) {
   if (!entry) {
     return lang === "ba"
       ? "<p>Nema promocija za ovaj dan.</p>"
@@ -71,9 +72,13 @@ function renderNormalModal(entry, lang = "ba") {
       <h2 class="font-bold text-[24px] md:text-[28px] leading-tight mb-2 text-center text-white">
         ${title}
       </h2>
-      <div class="text-[11px] uppercase tracking-[0.12em] text-[#FACC01] mb-3 text-center">
+      ${
+        hideLabel
+          ? ""
+          : `<div class="text-[11px] uppercase tracking-[0.12em] text-[#FACC01] mb-3 text-center">
         ${categoryLabel}
-      </div>
+      </div>`
+      }
 
       ${
         contentHtml
