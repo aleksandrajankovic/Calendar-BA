@@ -496,22 +496,45 @@
   box-shadow: inset 0 0 0 4px var(--t-bg), inset 0 0 0 7px var(--gold);
 }
 .special { box-shadow: inset 0 0 0 1px var(--gold), 0 0 14px rgba(209, 170, 85, 0.35); }
-.specialStar {
+/* zlatna traka preko gornjeg desnog ugla (ostaje i kad je polje otvoreno) */
+.sashWrap {
   position: absolute;
-  top: -7px;
-  right: -7px;
+  inset: 0;
   z-index: 5;
-  width: max(18px, 13cqi);
-  height: max(18px, 13cqi);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--gold);
-  color: var(--bordeaux);
-  font-size: max(11px, 8cqi);
-  line-height: 1;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  border-radius: 4px;
   pointer-events: none;
+}
+.sash {
+  position: absolute;
+  top: 13cqi;
+  right: -21cqi;
+  width: 80cqi;
+  padding: 2.2cqi 0;
+  transform: rotate(45deg);
+  overflow: hidden;
+  text-align: center;
+  font-family: var(--body);
+  font-size: max(8px, 6.4cqi);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #5f1823;
+  background: linear-gradient(180deg, #f0d48a, var(--gold) 55%, #b98f3e);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -1px 0 rgba(90, 60, 0, 0.35);
+}
+/* sjaj koji povremeno pređe preko trake */
+.sash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.65) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: sashShine 3.6s ease-in-out infinite;
+}
+@keyframes sashShine {
+  0%, 55% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(120%); }
 }
 
 /* slot mašina za specijalan dan — tamni panel sa zlatnim rubom */

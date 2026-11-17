@@ -137,8 +137,9 @@ function Door({ day, index, isOpen, canOpen, adminPreview, hint, extraClass, onD
       )}
       {day.state === "today" && <span className={s.tag}>Danas</span>}
       {day.special && (
-        <span className={s.specialStar} aria-label="Specijalan dan">
-          ★
+        // specijalan dan (slot): zlatna traka preko gornjeg desnog ugla, kao na poklonu
+        <span className={s.sashWrap} aria-label="Specijalan dan">
+          <span className={s.sash}>Specijal</span>
         </span>
       )}
       {hint && <span className={s.hint}>{hint.text}</span>}
