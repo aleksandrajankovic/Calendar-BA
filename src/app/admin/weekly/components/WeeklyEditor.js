@@ -14,6 +14,7 @@ import {
   Section,
   TextField,
   ThemeNotice,
+  GoldBallToggle,
   themeFeatures,
   useMonthTheme,
   WEEKDAY_LABELS,
@@ -28,7 +29,6 @@ const CATEGORIES = [
   { value: "MISSIONS", label: "Missions" },
   { value: "ALL", label: "All" },
 ];
-const GOLD = { value: "GOLD", label: "Zlatna lopta" };
 
 export default function WeeklyEditor({ initial, onCancel, onSave }) {
   const seed = useMemo(() => {
@@ -199,11 +199,12 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
         {show.category && (
           <PillSelector
             label="Category"
-            options={show.gold ? [...CATEGORIES, GOLD] : CATEGORIES}
+            options={CATEGORIES}
             value={form.category}
             onChange={(v) => setField("category", v)}
           />
         )}
+        {show.goldToggle && <GoldBallToggle value={form.category} onChange={(v) => setField("category", v)} />}
       </Section>
 
       {show.effects && (

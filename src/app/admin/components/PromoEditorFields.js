@@ -382,18 +382,38 @@ export function useMonthTheme(year, month) {
 
 // Šta tema koristi: advent ima samo ikonicu (poklon iza vratanca); Zlatna lopta i nokaut faze
 // postoje samo na loptama football teme; efekti (grebalica, slot, flip) nisu u advent temi.
+// U football temi kategorije (Sport, Casino…) ne mijenjaju izgled lopte — bitna je samo Zlatna lopta,
+// pa se tamo umjesto liste kategorija prikazuje prekidač "Zlatna lopta".
 export function themeFeatures(theme) {
+  const football = theme === "football";
   return {
-    category: theme !== "advent",
-    gold: theme === null || theme === "football",
-    knockout: theme === null || theme === "football",
+    category: theme !== "advent" && !football,
+    goldToggle: football,
+    knockout: football,
     effects: theme !== "advent",
   };
 }
 
+export function GoldBallToggle({ value, onChange }) {
+  return (
+    <label className="flex items-start gap-2 text-sm text-neutral-800">
+      <input type="checkbox" className="mt-0.5" checked={value === "GOLD"} onChange={(e) => onChange(e.target.checked ? "GOLD" : "ALL")} />
+      <span>
+        Zlatna lopta
+        <span className="block text-xs text-neutral-400">Lopta dobija zlatni sjaj, a u pop-upu oznaku „Ekskluzivna promocija“.</span>
+      </span>
+    </label>
+  );
+}
+
+const MONTHS_BS = [
+  "januar", "februar", "mart", "april", "maj", "juni",
+  "juli", "august", "septembar", "oktobar", "novembar", "decembar",
+];
+
 export function ThemeNotice({ theme, year, month }) {
   if (!theme) return null;
-  const monthLabel = new Date(Number(year), Number(month), 1).toLocaleString("bs-BA", { month: "long", year: "numeric" });
+  const monthLabel = `${MONTHS_BS[Number(month)] || ""} ${year}`;
   return (
     <div
       className={`rounded-lg border px-4 py-3 text-sm ${

@@ -13,6 +13,7 @@ import {
   Section,
   TextField,
   ThemeNotice,
+  GoldBallToggle,
   themeFeatures,
   useMonthTheme,
   openCalendarPreview,
@@ -26,7 +27,6 @@ const CATEGORIES = [
   { value: "MISSIONS", label: "Missions" },
   { value: "ALL", label: "All" },
 ];
-const GOLD = { value: "GOLD", label: "Zlatna lopta" };
 
 const KNOCKOUT_OPTIONS = [
   { value: null, label: "Nema" },
@@ -269,11 +269,12 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         {show.category && (
           <PillSelector
             label="Category"
-            options={show.gold ? [...CATEGORIES, GOLD] : CATEGORIES}
+            options={CATEGORIES}
             value={form.category}
             onChange={(v) => set("category", v)}
           />
         )}
+        {show.goldToggle && <GoldBallToggle value={form.category} onChange={(v) => set("category", v)} />}
         {show.knockout && (
         <PillSelector
           label={
