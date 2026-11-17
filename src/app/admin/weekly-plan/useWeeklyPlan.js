@@ -35,11 +35,15 @@ export function useWeeklyPlan(year, month) {
         richHtml: payload.richHtml ?? "",
 
         active: !!payload.active,
+        // efekti — ranije se nisu slali, pa se grebalica/flip za mjesečne promocije nisu čuvali
+        scratch: !!payload.scratch,
+        slot: !!payload.slot,
+        flipCard: !!payload.flipCard,
         icon: payload.icon ?? "",
         buttonColor: payload.buttonColor ?? "green",
 
         translations: payload.translations || null,
-        defaultLang: payload.defaultLang || "pt",
+        defaultLang: payload.defaultLang || "ba",
         category: payload.category || "ALL",
       }),
     });
