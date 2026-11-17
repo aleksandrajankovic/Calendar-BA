@@ -460,7 +460,7 @@
 .capHint { font-size: 12px; color: rgba(242, 231, 207, 0.55); }
 /* niski telefoni (npr. iPhone SE, 375×667): sve stane na ekran bez skrolovanja.
    Visoki telefoni (Pro Max) ne ulaze u ovaj uslov i ostaju kakvi jesu. */
-@media (max-width: 767px) and (max-height: 760px) {
+@media (max-width: 767px) and (max-height: 700px) {
   .root { gap: 12px; min-height: 0; }
   .chips { gap: 8px; padding-top: 2px; padding-bottom: 4px; }
   .chip { width: 50px; padding: 6px 0; border-radius: 9px; }
