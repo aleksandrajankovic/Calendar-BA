@@ -2,6 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { adventDisplay, adventBody } from "@/app/fonts";
 import { ADVENT_SPRITE, TILE_ART } from "./adventArt";
 import { track, disableTracking } from "@/lib/track";
@@ -446,7 +447,15 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
         </div>
       </div>
 
-      {modalIdx !== null && days[modalIdx]?.promo && <PromoModal day={days[modalIdx]} onClose={closeModal} />}
+      {/* portal na <body>: pop-up je iznad svega (zaglavlje sa logom ima viši sloj od kalendara) */}
+      {modalIdx !== null &&
+        days[modalIdx]?.promo &&
+        createPortal(
+          <div className={cx(s.portal, adventDisplay.variable, adventBody.variable)}>
+            <PromoModal day={days[modalIdx]} onClose={closeModal} />
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

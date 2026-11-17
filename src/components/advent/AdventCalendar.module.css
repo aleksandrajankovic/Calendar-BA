@@ -11,7 +11,20 @@
   --recess-lo: #16060a;
   --display: var(--font-advent-display), "Didot", Georgia, serif;
   --body: var(--font-advent-body), "Futura", system-ui, sans-serif;
-
+}
+/* pop-up se prikazuje kroz portal na <body>, pa nosi iste boje/fontove kao tabla */
+.portal {
+  --page: #2a0c12;
+  --bordeaux: #7c2230;
+  --cream: #f2e7cf;
+  --beige: #d8c09b;
+  --olive: #5d6a38;
+  --gold: #d1aa55;
+  --ink-dark: #2c1610;
+  --display: var(--font-advent-display), "Didot", Georgia, serif;
+  --body: var(--font-advent-body), "Futura", system-ui, sans-serif;
+}
+.root {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -704,5 +717,5 @@
 .close:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .root *, .overlay * { animation: none !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+  .root *, .portal * { animation: none !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
 }
