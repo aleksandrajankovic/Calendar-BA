@@ -551,6 +551,7 @@
   border: 6px solid var(--bordeaux);
   box-shadow: 0 0 0 1px var(--gold), inset 0 0 0 1px rgba(209, 170, 85, 0.55), 0 24px 60px rgba(0, 0, 0, 0.55);
 }
+.modal:focus { outline: none; }
 @keyframes pop { from { transform: scale(0.88); opacity: 0; } }
 
 /* naslovna: baner promocije ili praznična bordo traka */
@@ -719,33 +720,35 @@
   stroke-linecap: round;
 }
 
+/* zatvaranje: tanak zlatni krstić bez kruga (kao kod slot reveal-a), senka da se vidi preko banera */
 .close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--gold);
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
   display: grid;
   place-items: center;
-  background: var(--bordeaux);
-  color: var(--cream);
+  background: none;
+  color: #d4b26f;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  transition: filter 0.15s;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.9));
+  transition: color 0.15s, transform 0.2s;
 }
 .close svg {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.4;
+  stroke-width: 1.8;
   stroke-linecap: round;
 }
-.close:hover { filter: brightness(1.15); }
-.close:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.close:hover { color: #fff6dc; transform: rotate(90deg); }
+.close:focus-visible { outline: 1px solid #d4b26f; outline-offset: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   .root *, .portal * { animation: none !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }

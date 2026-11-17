@@ -219,7 +219,7 @@ function SlotOverlay({ day, pool, onDone, onClose }) {
 }
 
 function PromoModal({ day, onClose }) {
-  const closeRef = useRef(null);
+  const dialogRef = useRef(null);
   const promo = day.promo;
   const past = day.state === "past";
   const ctaOff = past && !PAST_CTA_ENABLED;
@@ -232,7 +232,7 @@ function PromoModal({ day, onClose }) {
     const prevFocus = document.activeElement;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
+    dialogRef.current?.focus({ preventScroll: true });
     const onKey = (e) => {
       if (e.key === "Escape") onClose();
     };
@@ -262,8 +262,8 @@ function PromoModal({ day, onClose }) {
           />
         ))}
       </svg>
-      <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby="advent-modal-title">
-        <button ref={closeRef} type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
+      <div ref={dialogRef} tabIndex={-1} className={s.modal} role="dialog" aria-modal="true" aria-labelledby="advent-modal-title">
+        <button type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
