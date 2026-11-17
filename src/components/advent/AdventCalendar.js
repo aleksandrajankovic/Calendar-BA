@@ -450,6 +450,25 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
       </svg>
 
 
+      {/* MOBILNI: traka sa datumima izvan table, preko cijele širine */}
+      <div className={s.mChips}>
+      <div className={s.chips} ref={chipsRef} role="tablist" aria-label="Dani">
+        {days.map((day, i) => (
+          <button
+            key={day.key}
+            type="button"
+            role="tab"
+            aria-selected={i === sel}
+            className={cx(s.chip, s[day.state], i === sel && s.sel)}
+            onClick={() => go(i)}
+          >
+            <b>{day.d}</b>
+            <small>{MONTHS[day.m].slice(0, 3)}</small>
+          </button>
+        ))}
+      </div>
+      </div>
+
       <div className={s.board}>
         {/* DESKTOP: cijela tabla, poravnata po danima u sedmici (pon–ned) */}
         <div className={s.desk}>
@@ -473,22 +492,6 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
 
         {/* MOBILNI: jedno polje, swipe lijevo/desno */}
         <div className={s.mView}>
-          <div className={s.chips} ref={chipsRef} role="tablist" aria-label="Dani">
-            {days.map((day, i) => (
-              <button
-                key={day.key}
-                type="button"
-                role="tab"
-                aria-selected={i === sel}
-                className={cx(s.chip, s[day.state], i === sel && s.sel)}
-                onClick={() => go(i)}
-              >
-                <b>{day.d}</b>
-                <small>{MONTHS[day.m].slice(0, 3)}</small>
-              </button>
-            ))}
-          </div>
-
           <div className={s.stageRow}>
             <button type="button" className={s.arrow} aria-label="Prethodni dan" disabled={sel === 0} onClick={() => go(sel - 1)}>
               ‹
