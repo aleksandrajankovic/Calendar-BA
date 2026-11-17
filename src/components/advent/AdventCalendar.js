@@ -251,8 +251,6 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
 
   if (!days.length) return null;
 
-  const first = days[0];
-  const last = days[days.length - 1];
   const selDay = days[sel];
   const selStateLabel =
     selDay.state === "today" ? "Danas" : selDay.state === "past" ? "Završeno" : "Zaključano";
@@ -274,9 +272,6 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
         <defs dangerouslySetInnerHTML={{ __html: ADVENT_SPRITE }} />
       </svg>
 
-      <div className={s.range}>
-        {first.d}. {MONTHS[first.m]} – {last.d}. {MONTHS[last.m]}
-      </div>
 
       <div className={s.board}>
         {/* DESKTOP: cijela tabla */}

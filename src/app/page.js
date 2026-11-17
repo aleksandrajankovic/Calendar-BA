@@ -309,9 +309,6 @@ export default async function Home({ searchParams, pageMonth }) {
     findNearestMonthWithPromos(pagFrom.y, pagFrom.m, "prev", inactiveSet),
     findNearestMonthWithPromos(pagTo.y, pagTo.m, "next", inactiveSet),
   ]);
-  const paginationLabel = advent
-    ? `${advent.start.d}.${advent.start.m + 1}. – ${advent.end.d}.${advent.end.m + 1}.`
-    : null;
 
   return (
     <div className="min-h-[100dvh] flex flex-col overflow-hidden">
@@ -421,7 +418,6 @@ export default async function Home({ searchParams, pageMonth }) {
                 prevMonth={prevMonth}
                 nextMonth={nextMonth}
                 className="text-sm"
-                label={paginationLabel}
               />
             </div>
           )}
@@ -459,7 +455,6 @@ export default async function Home({ searchParams, pageMonth }) {
               prevMonth={prevMonth}
               nextMonth={nextMonth}
               className="text-base"
-              label={paginationLabel}
             />
           </div>
         </div>

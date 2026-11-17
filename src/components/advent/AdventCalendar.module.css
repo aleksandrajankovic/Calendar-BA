@@ -21,14 +21,6 @@
   font-family: var(--body);
 }
 
-.range {
-  font-size: 12px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--gold);
-  text-align: center;
-}
-
 .board {
   width: 100%;
   max-width: 1000px;
