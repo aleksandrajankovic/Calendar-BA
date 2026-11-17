@@ -13,8 +13,8 @@ const WEEKDAY_HEAD = ["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"];
 const TONES = [s.tBordeaux, s.tCream, s.tOlive, s.tBeige];
 const STORAGE_KEY = "advent-opened";
 
-// Da li se CTA prošlih promocija može kliknuti. Čeka potvrdu od BA marketinga.
-const PAST_CTA_ENABLED = false;
+// Prošle promocije i dalje imaju dugme (CTA). Na false: umjesto dugmeta "Ova promocija je završena".
+const PAST_CTA_ENABLED = true;
 
 const fmtShort = (d) => `${d.d}.${d.m + 1}.`;
 const cx = (...a) => a.filter(Boolean).join(" ");

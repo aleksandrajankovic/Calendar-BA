@@ -462,7 +462,7 @@
 @keyframes fade { from { opacity: 0; } }
 .modalWrap {
   position: relative;
-  width: min(420px, 100%);
+  width: min(480px, 100%);
   animation: pop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1);
 }
 /* sijalice po sredini bordo rama (ram je 6px) */
