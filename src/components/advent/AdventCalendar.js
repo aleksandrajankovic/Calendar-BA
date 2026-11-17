@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { adventDisplay, adventBody } from "@/app/fonts";
 import { ADVENT_SPRITE, TILE_ART } from "./adventArt";
 import { track, disableTracking } from "@/lib/track";
+import MonthPagination from "@/components/MonthPagination";
 import { renderSlotModal, initSlot } from "@/lib/slot/slotReveal";
 import "@/lib/slot/slotReveal.css";
 import s from "./AdventCalendar.module.css";
@@ -332,7 +333,7 @@ function PromoModal({ day, onClose }) {
   );
 }
 
-export default function AdventCalendar({ days = [], adminPreview = false }) {
+export default function AdventCalendar({ days = [], adminPreview = false, year, month, prevMonth = null, nextMonth = null }) {
   const todayIdx = days.findIndex((d) => d.state === "today");
   const initialSel = todayIdx >= 0 ? todayIdx : days[0]?.state === "future" ? 0 : Math.max(days.length - 1, 0);
 
@@ -450,26 +451,26 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
       </svg>
 
 
-      {/* MOBILNI: traka sa datumima izvan table, preko cijele širine */}
-      <div className={s.mChips}>
-      <div className={s.chips} ref={chipsRef} role="tablist" aria-label="Dani">
-        {days.map((day, i) => (
-          <button
-            key={day.key}
-            type="button"
-            role="tab"
-            aria-selected={i === sel}
-            className={cx(s.chip, s[day.state], i === sel && s.sel)}
-            onClick={() => go(i)}
-          >
-            <b>{day.d}</b>
-            <small>{MONTHS[day.m].slice(0, 3)}</small>
-          </button>
-        ))}
-      </div>
-      </div>
-
       <div className={s.board}>
+        {/* MOBILNI: traka sa datumima kao zaglavlje kartice */}
+        <div className={s.mChips}>
+        <div className={s.chips} ref={chipsRef} role="tablist" aria-label="Dani">
+          {days.map((day, i) => (
+            <button
+              key={day.key}
+              type="button"
+              role="tab"
+              aria-selected={i === sel}
+              className={cx(s.chip, s[day.state], i === sel && s.sel)}
+              onClick={() => go(i)}
+            >
+              <b>{day.d}</b>
+              <small>{MONTHS[day.m].slice(0, 3)}</small>
+            </button>
+          ))}
+        </div>
+        </div>
+
         {/* DESKTOP: cijela tabla, poravnata po danima u sedmici (pon–ned) */}
         <div className={s.desk}>
           <div className={s.weekdays} aria-hidden="true">
@@ -535,6 +536,13 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
             <span className={s.capHint}>Prevuci lijevo ili desno za ostale dane</span>
           </div>
         </div>
+
+        {/* MOBILNI: mjesec kao podnožje kartice (kao kod football teme) */}
+        {year != null && (
+          <div className={s.mFootNav}>
+            <MonthPagination year={year} month={month} prevMonth={prevMonth} nextMonth={nextMonth} className="text-sm" />
+          </div>
+        )}
       </div>
 
       {/* portal na <body>: pop-up je iznad svega (zaglavlje sa logom ima viši sloj od kalendara) */}

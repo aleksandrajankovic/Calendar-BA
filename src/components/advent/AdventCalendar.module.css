@@ -371,13 +371,39 @@
   align-items: center;
   gap: 16px;
 }
-/* traka sa datumima (samo mobilni) — izvan table, preko cijele širine, krajevi se utapaju */
-.mChips { display: none; width: 100%; }
+/* MOBILNI: jedna kartica — zaglavlje sa datumima, polje dana, podnožje sa mjesecom */
+.mChips,
+.mFootNav { display: none; }
 @media (max-width: 767px) {
   .desk { display: none; }
-  .mView { display: flex; }
-  .mChips { display: block; }
-  .board { padding: 16px 10px 14px; }
+  .board {
+    padding: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    /* kartica popunjava ekran ispod naslova — bez praznog prostora ispod */
+    min-height: min(calc(100dvh - 190px), 820px);
+  }
+  .mChips {
+    display: block;
+    padding: 12px 0 6px;
+    background: rgba(0, 0, 0, 0.22);
+    border-bottom: 1px solid rgba(209, 170, 85, 0.45);
+  }
+  .mView {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    padding: 18px 10px;
+  }
+  .mFootNav {
+    display: flex;
+    justify-content: center;
+    padding: 10px 12px 12px;
+    background: rgba(0, 0, 0, 0.22);
+    border-top: 1px solid rgba(209, 170, 85, 0.45);
+  }
 }
 .chips {
   position: relative; /* offsetLeft dugmića se računa u odnosu na traku (centriranje današnjeg dana) */

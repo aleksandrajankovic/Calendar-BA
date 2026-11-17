@@ -410,7 +410,7 @@ export default async function Home({ searchParams, pageMonth }) {
           )}
 
           {/* MOBILE PAGINATION — skrivena za football (paginacija je unutar CalendarMobileFootball) */}
-          {activeTheme !== "football" && (
+          {activeTheme !== "football" && activeTheme !== "advent" && (
             <div className="flex items-center justify-center md:hidden">
               <MonthPagination
                 year={year}
@@ -424,7 +424,14 @@ export default async function Home({ searchParams, pageMonth }) {
 
           {advent ? (
             <div className="mt-6">
-              <AdventCalendar days={adventDays} adminPreview={isAdmin} />
+              <AdventCalendar
+                days={adventDays}
+                adminPreview={isAdmin}
+                year={year}
+                month={month}
+                prevMonth={prevMonth}
+                nextMonth={nextMonth}
+              />
             </div>
           ) : (
             <>
