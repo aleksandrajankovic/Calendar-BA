@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { verifyToken } from "@/lib/auth";
-import { BASE_URL, monthHref, isValidYear, isValidMonth } from "@/lib/calendarUrls";
+import { BASE_URL, monthHref, isValidYear, isValidMonth, sarajevoNow } from "@/lib/calendarUrls";
 import SnowOverlay from "@/components/SnowOverlay";
 import AdventCalendar from "@/components/advent/AdventCalendar";
 import { resolveAdvent, monthsInRange, buildAdventDays } from "@/lib/advent";
@@ -136,16 +136,25 @@ const MONTH_NAMES_BS = [
 // Mjesec stranice: iz /[year]/[month] rute (prosljeđuje ga ta ruta), inače tekući mjesec.
 // Stari ?y=&m= linkovi se na "/" preusmjeravaju na novi URL (vidi Home).
 function resolvePageMonth(pageMonth) {
-  const now = new Date();
+  const now = sarajevoNow();
   if (pageMonth && isValidYear(pageMonth.year) && isValidMonth(pageMonth.month)) return pageMonth;
   return { year: now.getFullYear(), month: now.getMonth() };
 }
 
 export async function generateMetadata({ pageMonth } = {}) {
   const { year, month } = resolvePageMonth(pageMonth);
-  const canonical = `${BASE_URL}${monthHref(year, month)}`;
-
   const settings = await prisma.calendarSettings.findFirst();
+
+  // Advent period preko dva mjeseca: oba mjeseca prikazuju istu tablu → jedan kanonski URL (mjesec početka)
+  const adventRange = resolveAdvent({
+    monthBgs: settings?.monthBackgrounds || {},
+    globalTheme: settings?.theme,
+    year,
+    month,
+  });
+  const canonicalMonth = adventRange ? { y: adventRange.start.y, m: adventRange.start.m } : { y: year, m: month };
+  const canonical = `${BASE_URL}${monthHref(canonicalMonth.y, canonicalMonth.m)}`;
+
   const seo = settings?.seoMeta?.ba || {};
 
   const monthBs = MONTH_NAMES_BS[month];

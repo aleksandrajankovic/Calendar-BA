@@ -1,4 +1,5 @@
 import { buildCalendarData } from "@/lib/calendarGridHelpers";
+import { sarajevoNow } from "@/lib/calendarUrls";
 import CalendarDayCell from "./CalendarDayCell";
 import CalendarGhostCell from "./CalendarGhostCell";
 import CalendarDayBall from "./CalendarDayBall";
@@ -28,6 +29,7 @@ export default function CalendarGrid({
     specials,
     adminPreview,
     lang,
+    today: sarajevoNow(), // dan se otključava u ponoć po sarajevskom vremenu
   });
 
   const isFootball = theme === "football";
