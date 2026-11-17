@@ -29,10 +29,10 @@ const CATEGORIES = [
 ];
 
 const KNOCKOUT_OPTIONS = [
-  { value: null, label: "Nema" },
-  { value: "QUARTER_FINAL", label: "⚽ Četvrtfinale (1/4)" },
-  { value: "SEMI_FINAL", label: "⚽ Polufinale (1/2)" },
-  { value: "FINAL", label: "🏆 Finale" },
+  { value: null, label: "None" },
+  { value: "QUARTER_FINAL", label: "⚽ Quarter-final (1/4)" },
+  { value: "SEMI_FINAL", label: "⚽ Semi-final (1/2)" },
+  { value: "FINAL", label: "🏆 Final" },
 ];
 
 // yyyy-mm-dd ⇄ {year, month(0-11), day}
@@ -278,7 +278,7 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         <PillSelector
           label={
             <>
-              Knockout faza <span className="text-neutral-400 font-normal">(kombinuje se sa kategorijom)</span>
+              Knockout stage <span className="text-neutral-400 font-normal">(shown on the ball)</span>
             </>
           }
           options={KNOCKOUT_OPTIONS}

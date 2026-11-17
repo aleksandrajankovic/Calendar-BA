@@ -406,10 +406,11 @@ export function SpecialDayToggle({ form, setField }) {
         }}
       />
       <span>
-        Specijalan dan (slot reveal)
+        Special day (slot reveal)
         <span className="block text-xs text-neutral-400">
-          Vratanca dobijaju zlatni rub i zvjezdicu. Klik na poklon pokreće slot mašinu koja staje na sliku ove
-          promocije (prva slika u opisu, npr. 880×340), pa se otvara pop-up. Preporuka: 1–2 dana u periodu.
+          The door gets a gold rim and a &quot;Specijal&quot; ribbon. Clicking the gift spins a slot machine that stops on
+          this promotion&apos;s image (first image in the description, e.g. 880×340), then the pop-up opens.
+          Recommended: 1–2 days per period.
         </span>
       </span>
     </label>
@@ -421,8 +422,8 @@ export function GoldBallToggle({ value, onChange }) {
     <label className="flex items-start gap-2 text-sm text-neutral-800">
       <input type="checkbox" className="mt-0.5" checked={value === "GOLD"} onChange={(e) => onChange(e.target.checked ? "GOLD" : "ALL")} />
       <span>
-        Zlatna lopta
-        <span className="block text-xs text-neutral-400">Lopta dobija zlatni sjaj, a u pop-upu oznaku „Ekskluzivna promocija“.</span>
+        Golden ball
+        <span className="block text-xs text-neutral-400">The ball gets a gold glow and the pop-up shows an &quot;Exclusive promotion&quot; badge.</span>
       </span>
     </label>
   );

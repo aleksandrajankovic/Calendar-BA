@@ -15,7 +15,7 @@ export function useWeeklyPlan(year, month) {
     fetch(`/api/weekly-plan?year=${year}&month=${month}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then(setRows)
-      .catch(() => setError("Ne mogu da učitam plan"))
+      .catch(() => setError("Could not load the plan."))
       .finally(() => setLoading(false));
   }, [year, month]);
 
@@ -45,7 +45,7 @@ export function useWeeklyPlan(year, month) {
     });
 
     if (!res.ok) {
-      toast.error("Greška pri snimanju");
+      toast.error("Saving failed.");
       return;
     }
 
@@ -67,7 +67,7 @@ export function useWeeklyPlan(year, month) {
     });
     if (!res.ok && res.status !== 204) {
       setRows(prev);
-      toast.error("Greška pri brisanju");
+      toast.error("Deleting failed.");
     }
   }
 

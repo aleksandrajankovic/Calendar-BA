@@ -172,7 +172,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
           activeLang={activeLang}
           currentT={currentT}
           setTranslationField={setTranslationField}
-          placeholder="Upiši sadržaj za ovu sedmičnu promociju…"
+          placeholder="Write the content for this weekly promotion…"
         />
       </Section>
 

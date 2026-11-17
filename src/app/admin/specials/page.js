@@ -27,7 +27,7 @@ export default function SpecialsAdminPage() {
         );
         setRows(data);
       })
-      .catch(() => setErr("Ne mogu da učitam specijalne promocije."))
+      .catch(() => setErr("Could not load special promotions."))
       .finally(() => setLoading(false));
   }, []);
 

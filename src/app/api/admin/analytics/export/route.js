@@ -32,7 +32,7 @@ export async function GET(req) {
     if (kind === "events") {
       const rows = await getEvents(range);
       csv = toCsv(
-        ["Vreme", "Događaj", "Dan kalendara", "Tip promocije", "Promocija", "Uređaj", "U iframe-u", "Posetilac (dnevni ID)"],
+        ["Time", "Event", "Calendar day", "Promo type", "Promotion", "Device", "In iframe", "Visitor (daily ID)"],
         rows.map((r) => [
           r.time,
           r.type,
@@ -40,7 +40,7 @@ export async function GET(req) {
           r.promoType,
           r.title,
           r.device,
-          r.embedded ? "da" : "ne",
+          r.embedded ? "yes" : "no",
           r.visitor,
         ])
       );
@@ -48,7 +48,7 @@ export async function GET(req) {
       const data = await getAnalytics(range);
       if (kind === "promos") {
         csv = toCsv(
-          ["Dan kalendara", "Promocija", "Tip", "Otvaranja", "Jedinstvenih otvaranja", "Otkriveno (grebalica/slot)", "Klik na dugme"],
+          ["Calendar day", "Promotion", "Type", "Opened", "Unique opens", "Revealed (scratch/slot)", "Button clicks"],
           data.byPromo.map((r) => [
             `${r.year}-${pad(r.month + 1)}-${pad(r.day)}`,
             r.title,
@@ -61,13 +61,13 @@ export async function GET(req) {
         );
       } else {
         csv = toCsv(
-          ["Datum", "Prikazi", "Posetioci", "Otvaranja dana", "Otkriveno (grebalica/slot)", "Klik na dugme"],
+          ["Date", "Views", "Visitors", "Days opened", "Revealed (scratch/slot)", "Button clicks"],
           data.byDate.map((r) => [r.date, r.views, r.visitors, r.opens, r.scratches, r.ctas])
         );
       }
     }
 
-    const name = `kalendar-analitika-${kind}-${range.from}_${range.to}.csv`;
+    const name = `calendar-analytics-${kind}-${range.from}_${range.to}.csv`;
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
