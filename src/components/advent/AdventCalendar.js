@@ -42,6 +42,32 @@ function GiftArt({ promo, className }) {
   );
 }
 
+// Dani prije i poslije perioda, da tabla bude pun pravougaonik po sedmicama (kao "ghost"
+// polja u ostalim temama). Samo prikaz — bez vrata, ilustracije i klika.
+function ghostDays(days) {
+  const first = days[0];
+  const last = days[days.length - 1];
+  const lead = (first.weekday + 6) % 7;
+  const trail = (7 - ((lead + days.length) % 7)) % 7;
+  const at = (base, offset) => {
+    const dt = new Date(Date.UTC(base.y, base.m, base.d + offset));
+    return { key: `ghost-${dt.toISOString().slice(0, 10)}`, d: dt.getUTCDate(), m: dt.getUTCMonth() };
+  };
+  return {
+    before: Array.from({ length: lead }, (_, i) => at(first, i - lead)),
+    after: Array.from({ length: trail }, (_, i) => at(last, i + 1)),
+  };
+}
+
+function Ghost({ day }) {
+  return (
+    <div className={s.ghost} aria-hidden="true">
+      <span className={s.ghostNum}>{day.d}</span>
+      <span className={s.ghostMon}>{MONTHS[day.m].slice(0, 3)}</span>
+    </div>
+  );
+}
+
 function Door({ day, index, isOpen, canOpen, adminPreview, hint, extraClass, onDoor, onGift }) {
   const label = `${day.d}. ${MONTHS[day.m]}`;
   const tone = TONES[(index * 3 + Math.floor(index / 7)) % 4];
@@ -253,6 +279,7 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
   if (!days.length) return null;
 
   const selDay = days[sel];
+  const ghosts = ghostDays(days);
   const selStateLabel =
     selDay.state === "today" ? "Danas" : selDay.state === "past" ? "Završeno" : "Zaključano";
 
@@ -283,12 +310,14 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
             ))}
           </div>
           <div className={s.grid}>
-            {/* prazna mjesta prije prvog dana (npr. mjesec počinje srijedom → pon i uto prazni) */}
-            {Array.from({ length: (days[0].weekday + 6) % 7 }, (_, i) => (
-              <div key={`blank-${i}`} className={s.blank} aria-hidden="true" />
+            {ghosts.before.map((g) => (
+              <Ghost key={g.key} day={g} />
             ))}
             {days.map((day, i) => (
               <Door key={day.key} {...doorProps(day, i)} />
+            ))}
+            {ghosts.after.map((g) => (
+              <Ghost key={g.key} day={g} />
             ))}
           </div>
         </div>
