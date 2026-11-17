@@ -382,8 +382,6 @@
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    /* kartica popunjava ekran ispod naslova — bez praznog prostora ispod */
-    min-height: min(calc(100dvh - 190px), 820px);
   }
   .mChips {
     display: block;
@@ -395,7 +393,7 @@
     display: flex;
     flex: 1;
     justify-content: center;
-    padding: 18px 10px;
+    padding: 20px 16px 18px;
   }
   .mFootNav {
     display: flex;
@@ -458,26 +456,12 @@
   gap: 10px;
 }
 .stage {
-  /* veće polje na visokim telefonima (Pro Max), a da strelice i natpis i dalje stanu */
-  width: min(70vw, 44vh, 400px);
+  /* polje preko skoro cijele širine kartice; na niskim ekranima ograničeno visinom */
+  width: min(100%, 52vh, 420px);
   touch-action: pan-y;
 }
 .stage .cell { width: 100%; }
 .stage .tag { font-size: 12px; }
-.arrow {
-  flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 1px solid rgba(242, 231, 207, 0.3);
-  background: transparent;
-  color: var(--cream);
-  font-size: 20px;
-  line-height: 1;
-}
-.arrow:disabled { opacity: 0.25; cursor: default; }
-.arrow:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .cap {
   display: flex;
   flex-direction: column;

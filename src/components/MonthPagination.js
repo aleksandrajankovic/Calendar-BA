@@ -1,8 +1,13 @@
 import { monthHref } from "@/lib/calendarUrls";
 
+const MONTHS_BS = [
+  "Januar", "Februar", "Mart", "April", "Maj", "Juni",
+  "Juli", "August", "Septembar", "Oktobar", "Novembar", "Decembar",
+];
+
 export default function MonthPagination({ year, month, prevMonth, nextMonth, className = "", labelClassName = "", label = null }) {
-  const raw = new Date(year, month, 1).toLocaleString("bs-BA", { month: "long" });
-  const monthLabel = raw.charAt(0).toUpperCase() + raw.slice(1);
+  // nazivi mjeseci ručno — browseri na telefonu često nemaju "bs-BA" pa prikažu "M11"
+  const monthLabel = MONTHS_BS[month] || "";
 
   return (
     <div className={`inline-flex items-center gap-4 rounded-full bg-black/40 px-4 py-2 text-white ${className}`}>
