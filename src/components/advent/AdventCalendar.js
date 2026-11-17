@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import { adventDisplay, adventBody } from "@/app/fonts";
 import { ADVENT_SPRITE, TILE_ART } from "./adventArt";
 import { track, disableTracking } from "@/lib/track";
+import { renderSlotModal, initSlot } from "@/lib/slot/slotReveal";
+import "@/lib/slot/slotReveal.css";
 import s from "./AdventCalendar.module.css";
 
 const MONTHS = ["januar", "februar", "mart", "april", "maj", "juni", "juli", "august", "septembar", "oktobar", "novembar", "decembar"];
@@ -81,7 +83,7 @@ function Door({ day, index, isOpen, canOpen, adminPreview, hint, extraClass, onD
 
   return (
     <div
-      className={cx(s.cell, tone, state, isOpen && s.open, adminPreview && day.state === "future" && s.adminOpenable, hint?.shake && s.shake, extraClass)}
+      className={cx(s.cell, tone, state, isOpen && s.open, day.special && s.special, adminPreview && day.state === "future" && s.adminOpenable, hint?.shake && s.shake, extraClass)}
     >
       <div className={s.recess}>
         {day.promo ? (
@@ -133,6 +135,11 @@ function Door({ day, index, isOpen, canOpen, adminPreview, hint, extraClass, onD
         </span>
       )}
       {day.state === "today" && <span className={s.tag}>Danas</span>}
+      {day.special && (
+        <span className={s.specialStar} aria-label="Specijalan dan">
+          ★
+        </span>
+      )}
       {hint && <span className={s.hint}>{hint.text}</span>}
     </div>
   );
@@ -150,6 +157,66 @@ function splitHero(html = "") {
 }
 
 const LIGHT_COUNT = 64;
+const SLOT_KEY = "advent-slot:";
+
+// Specijalan dan: slot mašina vrti slike promocija iz perioda i staje na baner ove promocije,
+// zatim se otvara obični pop-up (onDone). Koristi isti modul kao slot reveal u ostalim temama.
+function SlotOverlay({ day, pool, onDone, onClose }) {
+  const hostRef = useRef(null);
+  const promo = day.promo;
+  const { hero } = splitHero(promo.richHtml || "");
+  const image = hero || promo.icon || "";
+
+  // HTML slota se pravi jednom (initSlot radi nad tim DOM-om)
+  const [html] = useState(() =>
+    renderSlotModal({
+      image,
+      icon: promo.icon || "",
+      pool: pool.length ? pool : [image].filter(Boolean),
+      promoHtml: "",
+      dateLabel: `${day.d}. ${MONTHS[day.m]}`,
+      buttonLabel: "OTKRIJ POKLON",
+    })
+  );
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const dispose = initSlot({
+      onStopped: () => {
+        try {
+          localStorage.setItem(SLOT_KEY + day.key, "1");
+        } catch {}
+        trackDay("slot", day);
+      },
+      onRevealed: onDone,
+    });
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    hostRef.current?.querySelector(".slot-button")?.focus();
+    return () => {
+      dispose();
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className={s.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={s.slotPanel} role="dialog" aria-modal="true" aria-label={`Specijalan dan, ${day.d}. ${MONTHS[day.m]}`}>
+        <button type="button" className={s.close} aria-label="Zatvori" onClick={onClose}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+        <div ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    </div>
+  );
+}
 
 function PromoModal({ day, onClose }) {
   const closeRef = useRef(null);
@@ -331,13 +398,26 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
     [days, opened, adminPreview]
   );
 
+  const [slotIdx, setSlotIdx] = useState(null);
+
   const onGift = useCallback((i) => {
-    if (!days[i]?.promo) return;
-    trackDay("day_open", days[i]);
-    setModalIdx(i);
+    const day = days[i];
+    if (!day?.promo) return;
+    trackDay("day_open", day);
+    // specijalan dan: slot samo prvi put; poslije odmah pop-up (kao ogrebana grebalica)
+    let seen = false;
+    try {
+      seen = localStorage.getItem(SLOT_KEY + day.key) === "1";
+    } catch {}
+    if (day.promo.slot && !seen) setSlotIdx(i);
+    else setModalIdx(i);
   }, [days]);
 
   const closeModal = useCallback(() => setModalIdx(null), []);
+  const closeSlot = useCallback(() => setSlotIdx(null), []);
+
+  // slike za valjke: baneri (prva slika iz opisa) otvorenih promocija u periodu
+  const slotPool = [...new Set(days.map((d) => splitHero(d.promo?.richHtml || "").hero).filter(Boolean))];
 
   const go = (n) => {
     if (n < 0 || n >= days.length || n === sel) return;
@@ -455,6 +535,23 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
       </div>
 
       {/* portal na <body>: pop-up je iznad svega (zaglavlje sa logom ima viši sloj od kalendara) */}
+      {slotIdx !== null &&
+        days[slotIdx]?.promo &&
+        createPortal(
+          <div className={cx(s.portal, adventDisplay.variable, adventBody.variable)}>
+            <SlotOverlay
+              day={days[slotIdx]}
+              pool={slotPool.filter((src) => src !== splitHero(days[slotIdx].promo.richHtml || "").hero).slice(0, 12)}
+              onDone={() => {
+                setModalIdx(slotIdx);
+                setSlotIdx(null);
+              }}
+              onClose={closeSlot}
+            />
+          </div>,
+          document.body
+        )}
+
       {modalIdx !== null &&
         days[modalIdx]?.promo &&
         createPortal(

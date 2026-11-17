@@ -13,6 +13,7 @@ import {
   Section,
   TextField,
   GoldBallToggle,
+  SpecialDayToggle,
   themeFeatures,
   useMonthTheme,
   openCalendarPreview,
@@ -286,6 +287,12 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
         />
         )}
       </Section>
+
+      {show.specialDay && (
+        <Section title="Specijalan dan">
+          <SpecialDayToggle form={form} setField={set} />
+        </Section>
+      )}
 
       {show.effects && (
         <Section title="Effects">

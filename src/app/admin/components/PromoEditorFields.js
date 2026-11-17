@@ -385,7 +385,35 @@ export function themeFeatures(theme) {
     goldToggle: football,
     knockout: football,
     effects: theme !== "advent",
+    // advent: od efekata samo slot, kao "specijalan dan"
+    specialDay: theme === "advent",
   };
+}
+
+export function SpecialDayToggle({ form, setField }) {
+  return (
+    <label className="flex items-start gap-2 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        className="mt-0.5"
+        checked={!!form.slot}
+        onChange={(e) => {
+          setField("slot", e.target.checked);
+          if (e.target.checked) {
+            setField("scratch", false);
+            setField("flipCard", false);
+          }
+        }}
+      />
+      <span>
+        Specijalan dan (slot reveal)
+        <span className="block text-xs text-neutral-400">
+          Vratanca dobijaju zlatni rub i zvjezdicu. Klik na poklon pokreće slot mašinu koja staje na sliku ove
+          promocije (prva slika u opisu, npr. 880×340), pa se otvara pop-up. Preporuka: 1–2 dana u periodu.
+        </span>
+      </span>
+    </label>
+  );
 }
 
 export function GoldBallToggle({ value, onChange }) {

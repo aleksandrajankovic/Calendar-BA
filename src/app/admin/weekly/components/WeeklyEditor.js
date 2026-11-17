@@ -14,6 +14,7 @@ import {
   Section,
   TextField,
   GoldBallToggle,
+  SpecialDayToggle,
   themeFeatures,
   useMonthTheme,
   WEEKDAY_LABELS,
@@ -204,6 +205,12 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
         )}
         {show.goldToggle && <GoldBallToggle value={form.category} onChange={(v) => setField("category", v)} />}
       </Section>
+
+      {show.specialDay && (
+        <Section title="Specijalan dan">
+          <SpecialDayToggle form={form} setField={setField} />
+        </Section>
+      )}
 
       {show.effects && (
         <Section title="Effects">

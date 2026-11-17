@@ -120,6 +120,8 @@ export function buildAdventDays({ range, specials = [], weeklyByMonth = {}, admi
       ...ymd,
       weekday,
       state,
+      // specijalni dan (slot reveal) — vidi se i na zaključanom polju kao najava, bez sadržaja promocije
+      special: !!promo?.slot,
       promo:
         promo && !hidden
           ? {
@@ -131,6 +133,7 @@ export function buildAdventDays({ range, specials = [], weeklyByMonth = {}, admi
               buttonColor: promo.buttonColor || "green",
               category: promo.category || "ALL",
               icon: promo.icon && String(promo.icon).trim() ? promo.icon : null,
+              slot: !!promo.slot,
             }
           : null,
     });
