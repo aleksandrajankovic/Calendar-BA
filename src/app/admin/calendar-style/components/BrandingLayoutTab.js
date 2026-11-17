@@ -59,6 +59,8 @@ function PositionIcon({ value }) {
 
 export default function BrandingLayoutTab({
   logoUrl, setLogoUrl,
+  showLogo, setShowLogo,
+  closed, setClosed,
   titleBa, setTitleBa,
   theme, setTheme,
   calendarPosition, setCalendarPosition,
@@ -94,7 +96,7 @@ export default function BrandingLayoutTab({
   const configuredKeys = useMemo(
     () => Object.keys(monthBackgrounds).filter((k) => {
       const v = monthBackgrounds[k];
-      return v?.desktop || v?.mobile || v?.position || v?.titleBa || v?.inactive || v?.theme;
+      return v?.desktop || v?.mobile || v?.position || v?.titleBa || v?.inactive || v?.theme || v?.confetti;
 
     }),
     [monthBackgrounds]
@@ -102,6 +104,52 @@ export default function BrandingLayoutTab({
 
   return (
     <div className="space-y-6">
+      <AdminTableCard title="Calendar Status">
+        <div className="p-4 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-neutral-800">Close the calendar for visitors</p>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                E.g. after the campaign ends. Visitors see only the background, a title and a button — no days, no
+                clicks. Admin preview still shows the calendar.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setClosed({ ...closed, enabled: !closed.enabled })}
+              className={[
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+                closed.enabled ? "bg-red-600" : "bg-neutral-300",
+              ].join(" ")}
+              role="switch"
+              aria-checked={!!closed.enabled}
+              aria-label="Close the calendar for visitors"
+            >
+              <span
+                className={[
+                  "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition duration-200",
+                  closed.enabled ? "translate-x-5" : "translate-x-0",
+                ].join(" ")}
+              />
+            </button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <ClosedField label="Message" field="message" closed={closed} setClosed={setClosed} max={120}
+              placeholder="Kampanja je završena" />
+            <div className="hidden md:block" />
+            <ClosedField label="Button text" field="buttonLabel" closed={closed} setClosed={setClosed} max={60}
+              placeholder="Pogledaj sve promocije" />
+            <ClosedField label="Button link" field="buttonLink" closed={closed} setClosed={setClosed} max={500}
+              placeholder="https://meridianbet.ba" />
+          </div>
+          <p className="text-xs text-neutral-400">
+            Visitors see the campaign background with a large title and a yellow button. Empty fields use the defaults
+            (button goes to meridianbet.ba). A countdown date in the future (Engagement tab) is
+            shown below the button.
+          </p>
+        </div>
+      </AdminTableCard>
+
       <MonthOverridePicker
         selYear={selYear} setSelYear={setSelYear}
         selMonth={selMonth} setSelMonth={setSelMonth}
@@ -139,6 +187,15 @@ export default function BrandingLayoutTab({
       <AdminTableCard title="Logo">
         <div className="p-4 space-y-4">
           <p className="text-sm text-neutral-500">Logo displayed in the header bar at the top of the calendar.</p>
+          <label className="inline-flex items-center gap-2 text-sm text-neutral-800 cursor-pointer">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              checked={showLogo}
+              onChange={(e) => setShowLogo(e.target.checked)}
+            />
+            Show logo
+          </label>
           <div className="flex flex-wrap items-center gap-3">
             <input
               className="flex-1 min-w-0 border border-[#D0D0D0] rounded px-2.5 py-1.5 text-sm"
@@ -451,6 +508,7 @@ export default function BrandingLayoutTab({
                   bg.position && `position: ${bg.position}`,
                   bg.desktop && "desktop bg",
                   bg.mobile && "mobile bg",
+                  bg.confetti && `confetti: ${bg.confetti.style === "custom" ? bg.confetti.emoji : bg.confetti.style}`,
                 ].filter(Boolean).join(", ");
                 return (
                   <li key={k} className="flex items-center gap-3 text-xs text-neutral-700">
@@ -518,5 +576,20 @@ function AdventPeriod({ currentBg, setField }) {
         Gift behind each door = the promo&apos;s <strong>icon</strong> (Special / Monthly promotions). Transparent PNG/WebP, square, ~256px.
       </p>
     </div>
+  );
+}
+
+function ClosedField({ label, field, closed, setClosed, max, placeholder }) {
+  return (
+    <label className="block">
+      <span className="mb-1 inline-block text-sm text-neutral-600">{label}</span>
+      <input
+        className="w-full border border-[#D0D0D0] rounded px-2.5 py-2 text-sm"
+        value={closed[field] || ""}
+        onChange={(e) => setClosed({ ...closed, [field]: e.target.value })}
+        placeholder={placeholder}
+        maxLength={max}
+      />
+    </label>
   );
 }

@@ -9,10 +9,14 @@ import ImageGalleryModal from "../components/ImageGalleryModal";
 import TabNav from "./components/TabNav";
 import BrandingLayoutTab from "./components/BrandingLayoutTab";
 import SeoTab from "./components/SeoTab";
+import EngagementTab from "./components/EngagementTab";
+import EffectsTab from "./components/EffectsTab";
 
 const TABS = [
   { key: "branding", label: "Branding & Layout" },
+  { key: "effects", label: "Effects" },
   { key: "seo", label: "SEO / Meta" },
+  { key: "engagement", label: "Engagement" },
 ];
 
 export default function CalendarStylePage() {
@@ -27,6 +31,11 @@ export default function CalendarStylePage() {
   const [theme, setTheme]                       = useState("default");
   const [seoTitleBa, setSeoTitleBa]             = useState("");
   const [seoDescBa, setSeoDescBa]               = useState("");
+  const [showLogo, setShowLogo]                 = useState(true);
+  const [countdownTargetIso, setCountdownTargetIso] = useState("");
+  const [countdownLabel, setCountdownLabel]         = useState("");
+  const [confetti, setConfetti]                     = useState(null);
+  const [closed, setClosed]                         = useState({ enabled: false });
 
   const [monthBackgrounds, setMonthBackgrounds] = useState({});
   const [selYear, setSelYear]   = useState(now.getFullYear());
@@ -54,6 +63,11 @@ export default function CalendarStylePage() {
     setTheme(d.theme || "default");
     setSeoTitleBa(d.seoMeta?.ba?.title || "");
     setSeoDescBa(d.seoMeta?.ba?.description || "");
+    setShowLogo(d.showLogo ?? true);
+    setCountdownTargetIso(d.countdownTargetIso || "");
+    setCountdownLabel(d.countdownLabel || "");
+    setConfetti(d.confetti || null);
+    setClosed(d.closed || { enabled: false });
     setMonthBackgrounds(d.monthBackgrounds || {});
   }
 
@@ -88,6 +102,11 @@ export default function CalendarStylePage() {
           logoUrl,
           theme,
           seoMeta: { ba: { title: seoTitleBa, description: seoDescBa } },
+          showLogo,
+          countdownTargetIso,
+          countdownLabel,
+          confetti,
+          closed,
           monthBackgrounds,
         }),
       });
@@ -119,6 +138,8 @@ export default function CalendarStylePage() {
           {activeTab === "branding" && (
             <BrandingLayoutTab
               logoUrl={logoUrl} setLogoUrl={setLogoUrl}
+              showLogo={showLogo} setShowLogo={setShowLogo}
+              closed={closed} setClosed={setClosed}
               titleBa={titleBa} setTitleBa={setTitleBa}
               theme={theme} setTheme={setTheme}
               calendarPosition={calendarPosition} setCalendarPosition={setCalendarPosition}
@@ -131,10 +152,26 @@ export default function CalendarStylePage() {
             />
           )}
 
+          {activeTab === "effects" && (
+            <EffectsTab
+              confetti={confetti} setConfetti={setConfetti}
+              monthBackgrounds={monthBackgrounds} setMonthBackgrounds={setMonthBackgrounds}
+              selYear={selYear} setSelYear={setSelYear}
+              selMonth={selMonth} setSelMonth={setSelMonth}
+            />
+          )}
+
           {activeTab === "seo" && (
             <SeoTab
               seoTitleBa={seoTitleBa} setSeoTitleBa={setSeoTitleBa}
               seoDescBa={seoDescBa} setSeoDescBa={setSeoDescBa}
+            />
+          )}
+
+          {activeTab === "engagement" && (
+            <EngagementTab
+              countdownTargetIso={countdownTargetIso} setCountdownTargetIso={setCountdownTargetIso}
+              countdownLabel={countdownLabel} setCountdownLabel={setCountdownLabel}
             />
           )}
 

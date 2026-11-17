@@ -4,6 +4,8 @@ export const runtime = "nodejs";
 import { revalidateTag } from "next/cache";
 import prisma from "@/lib/db";
 import { getAdminFromRequest } from "@/lib/auth";
+import { sanitizeConfetti } from "@/lib/confetti";
+import { sanitizeLink } from "@/lib/validate";
 
 const VALID_POS = ["left", "center", "right"];
 const VALID_THEMES = ["default", "default-horizontal", "football", "advent"];
@@ -26,6 +28,11 @@ export async function GET(req) {
     logoUrl:          row?.logoUrl          || "/img/meridianbet-ng.png",
     theme:            row?.theme            || "default",
     seoMeta:          row?.seoMeta          || DEFAULT_SEO_META,
+    showLogo:           row?.showLogo           ?? true,
+    countdownTargetIso: row?.countdownTargetIso || "",
+    countdownLabel:     row?.countdownLabel     || "",
+    confetti:           row?.confetti           || null,
+    closed:             row?.closed             || { enabled: false },
   });
 }
 
@@ -49,6 +56,33 @@ export async function PUT(req) {
 
   if ("logoUrl" in body)
     patch.logoUrl = (body.logoUrl || "").trim() || null;
+
+  if ("showLogo" in body)
+    patch.showLogo = body.showLogo === true;
+
+  if ("confetti" in body)
+    patch.confetti = sanitizeConfetti(body.confetti);
+
+  // Kalendar zatvoren za posjetioce: naslov, opciono dugme (obični tekstovi — React ih
+  // escape-uje pri prikazu; link prolazi istu provjeru kao linkovi promocija)
+  if ("closed" in body) {
+    const c = body.closed || {};
+    const text = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+    patch.closed = {
+      enabled: c.enabled === true,
+      message: text(c.message, 120),
+      buttonLabel: text(c.buttonLabel, 60),
+      buttonLink: sanitizeLink(text(c.buttonLink, 500)),
+    };
+  }
+
+  if ("countdownTargetIso" in body) {
+    const raw = (body.countdownTargetIso || "").trim();
+    patch.countdownTargetIso = raw && !Number.isNaN(new Date(raw).getTime()) ? raw : null;
+  }
+
+  if ("countdownLabel" in body)
+    patch.countdownLabel = (body.countdownLabel || "").trim().slice(0, 80) || null;
 
   if ("calendarTitle" in body) {
     const t = body.calendarTitle;
@@ -87,8 +121,9 @@ export async function PUT(req) {
           const isAdvent = theme === "advent";
           const adventStart = isAdvent && YMD.test(val.adventStart || "") ? val.adventStart : null;
           const adventEnd   = isAdvent && YMD.test(val.adventEnd   || "") ? val.adventEnd   : null;
-          if (desktop || mobile || position || titleBa || inactive || theme)
-            out[key] = { desktop, mobile, position, titleBa, inactive, theme, adventStart, adventEnd };
+          const confetti = sanitizeConfetti(val.confetti);
+          if (desktop || mobile || position || titleBa || inactive || theme || confetti)
+            out[key] = { desktop, mobile, position, titleBa, inactive, theme, adventStart, adventEnd, confetti };
         }
       }
       cleaned = Object.keys(out).length ? out : null;
@@ -112,5 +147,10 @@ export async function PUT(req) {
     logoUrl:          row.logoUrl          || "/img/meridianbet-ng.png",
     theme:            row.theme            || "default",
     seoMeta:          row.seoMeta          || DEFAULT_SEO_META,
+    showLogo:           row.showLogo,
+    countdownTargetIso: row.countdownTargetIso || "",
+    countdownLabel:     row.countdownLabel     || "",
+    confetti:           row.confetti           || null,
+    closed:             row.closed             || { enabled: false },
   });
 }

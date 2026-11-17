@@ -1,42 +1,77 @@
 // src/lib/scratch/initScratch.js
+import confetti from "canvas-confetti";
 import { markDayOpened } from "@/lib/calendarProgress";
+import { confettiEmoji } from "@/lib/confetti";
 
 // Emoji burst drawn on our own canvas. canvas-confetti's shapeFromText uses ImageBitmap
-// patterns that render as white boxes on iOS Safari / some Android, and system emoji
-// look different per OS, so we use Twemoji SVGs (public/img/fx, CC-BY 4.0) instead.
-const BURST_IMAGES = ["/img/fx/bat.svg", "/img/fx/candy.svg"];
+// patterns that render as white boxes on iOS Safari / some Android, so every emoji is
+// rasterized once into its own small canvas: Twemoji SVGs (public/img/fx, CC-BY 4.0) where
+// we have them, otherwise the system emoji font via fillText (that works on iOS).
+// Stil (fudbal, Božić, Halloween, custom, klasične, off) bira se u adminu → lib/confetti.js.
+const EMOJI_SVG = { "🦇": "/img/fx/bat.svg", "🍬": "/img/fx/candy.svg" };
+const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const BURST_SIZES = [18, 24, 30];
-let spritesPromise = null;
+const spriteCache = new Map();
 
-// rasterize each image once per size; drawing a cached canvas per frame is cheap
-function loadSprites() {
-  if (spritesPromise) return spritesPromise;
+function loadImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+// rasterize each emoji once per size; drawing a cached canvas per frame is cheap
+function loadSprites(emojiList) {
+  const key = emojiList.join("|");
+  if (spriteCache.has(key)) return spriteCache.get(key);
   const dpr = window.devicePixelRatio || 1;
-  spritesPromise = Promise.all(
-    BURST_IMAGES.map(
-      (src) =>
-        new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-          img.src = src;
-        })
-    )
-  ).then((imgs) =>
-    imgs.filter(Boolean).flatMap((img) =>
+  const promise = Promise.all(
+    emojiList.map(async (text) => ({ text, img: EMOJI_SVG[text] ? await loadImage(EMOJI_SVG[text]) : null }))
+  ).then((sources) =>
+    sources.flatMap(({ text, img }) =>
       BURST_SIZES.map((size) => {
         const c = document.createElement("canvas");
         c.width = c.height = Math.ceil(size * dpr);
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        const ctx = c.getContext("2d");
+        if (img) {
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+        } else {
+          ctx.font = `${Math.round(size * dpr * 0.85)}px ${EMOJI_FONT}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, c.width / 2, c.height / 2 + dpr);
+        }
         return { canvas: c, size };
       })
     )
   );
-  return spritesPromise;
+  spriteCache.set(key, promise);
+  return promise;
 }
 
-async function emojiBurst({ duration = 1400, perPuff = 8 } = {}) {
-  const sprites = await loadSprites();
+// Klasične papirne konfete (canvas-confetti, bez emoji-ja)
+function classicBurst() {
+  const colors = ["#ff0000", "#ffd700", "#17bb00", "#0066ff", "#ff69b4", "#ffffff"];
+  const opts = { ticks: 300, colors, disableForReducedMotion: true };
+  confetti({ ...opts, particleCount: 80, spread: 70, startVelocity: 38, origin: { x: 0.35, y: 0.35 } });
+  setTimeout(() => {
+    confetti({ ...opts, particleCount: 60, spread: 80, startVelocity: 32, origin: { x: 0.65, y: 0.35 } });
+  }, 150);
+}
+
+// Konfete poslije grebanja po stilu iz admina
+export function launchConfetti(style) {
+  if (style?.style === "off") return;
+  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  const emoji = confettiEmoji(style);
+  if (emoji.length) emojiBurst({ emoji });
+  else classicBurst();
+}
+
+async function emojiBurst({ emoji, duration = 1400, perPuff = 8 }) {
+  const sprites = await loadSprites(emoji);
   if (!sprites.length) return;
 
   const dpr = window.devicePixelRatio || 1;
@@ -145,7 +180,7 @@ function getAnonUserId() {
   }
 }
 
-export function initScratch() {
+export function initScratch({ confetti: confettiStyle = null } = {}) {
   const canvas = document.getElementById("scratch-canvas");
   if (!canvas) return;
   loadSprites();
@@ -308,7 +343,7 @@ export function initScratch() {
     hint?.remove();
     hint1?.remove();
 
-    emojiBurst();
+    launchConfetti(confettiStyle || { style: "classic" });
 
     showReveal();
     attachFlipListener();

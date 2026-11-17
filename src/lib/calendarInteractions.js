@@ -258,7 +258,7 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
         const canvas = document.getElementById("scratch-canvas");
-        if (canvas) initScratch();
+        if (canvas) initScratch({ confetti: payload.confetti });
       })
     );
   }

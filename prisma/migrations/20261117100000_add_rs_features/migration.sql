@@ -13,7 +13,8 @@ ALTER TABLE "SpecialPromotion" ADD COLUMN IF NOT EXISTS "slot" BOOLEAN NOT NULL 
 ALTER TABLE "WeeklyPlan" ADD COLUMN IF NOT EXISTS "slot" BOOLEAN NOT NULL DEFAULT false;
 
 -- Podešavanja kalendara: logo, konfete, zatvoren kalendar, countdown
-ALTER TABLE "CalendarSettings" ADD COLUMN IF NOT EXISTS "showLogo" BOOLEAN NOT NULL DEFAULT false;
+-- showLogo je TRUE: BA je dosad uvijek prikazivao logo (u RS-u je podrazumijevano isključen)
+ALTER TABLE "CalendarSettings" ADD COLUMN IF NOT EXISTS "showLogo" BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE "CalendarSettings" ADD COLUMN IF NOT EXISTS "confetti" JSONB;
 ALTER TABLE "CalendarSettings" ADD COLUMN IF NOT EXISTS "closed" JSONB;
 ALTER TABLE "CalendarSettings" ADD COLUMN IF NOT EXISTS "countdownTargetIso" TEXT;

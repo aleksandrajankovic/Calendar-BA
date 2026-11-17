@@ -11,6 +11,9 @@ import { BASE_URL, monthHref, isValidYear, isValidMonth } from "@/lib/calendarUr
 import SnowOverlay from "@/components/SnowOverlay";
 import AdventCalendar from "@/components/advent/AdventCalendar";
 import { resolveAdvent, monthsInRange, buildAdventDays } from "@/lib/advent";
+import { resolveConfetti } from "@/lib/confetti";
+import CalendarClosed from "@/components/CalendarClosed";
+import CountdownTimer from "@/components/CountdownTimer";
 import { redirect } from "next/navigation";
 
 // -------------------------
@@ -271,6 +274,30 @@ export default async function Home({ searchParams, pageMonth }) {
 
   const isMonthInactive = !!monthBg.inactive;
 
+  // Konfete poslije grebanja — per-month override > global > po temi
+  const confettiStyle = resolveConfetti({
+    monthConfetti: monthBg.confetti,
+    globalConfetti: calendarSettings?.confetti,
+    theme: activeTheme,
+  });
+
+  // Logo na vrhu — može se isključiti u adminu (BA ga podrazumijevano prikazuje)
+  const showLogo = calendarSettings?.showLogo ?? true;
+
+  // Cijeli kalendar zatvoren (npr. kampanja završena): posjetilac vidi samo pozadinu i poruku,
+  // admin i dalje vidi kalendar (uz oznaku u admin traci)
+  const closedCfg = calendarSettings?.closed || {};
+  const isClosed = !!closedCfg.enabled;
+  const closedInfo = {
+    title: closedCfg.message || "Kampanja je završena",
+    buttonLabel: closedCfg.buttonLabel || "Pogledaj sve promocije",
+    buttonLink: closedCfg.buttonLink || "https://meridianbet.ba",
+  };
+
+  // Odbrojavanje — prikazuje se samo kad je datum podešen u adminu (Engagement)
+  const countdownTargetIso = calendarSettings?.countdownTargetIso || "";
+  const countdownLabel = calendarSettings?.countdownLabel || "Kalendar se otvara za";
+
   // Pagination — kod advent teme preskačemo mjesece koje period već pokriva
   const pagFrom = advent ? { y: advent.start.y, m: advent.start.m } : { y: year, m: month };
   const pagTo   = advent ? { y: advent.end.y,   m: advent.end.m   } : { y: year, m: month };
@@ -284,7 +311,8 @@ export default async function Home({ searchParams, pageMonth }) {
 
   return (
     <div className="min-h-[100dvh] flex flex-col overflow-hidden">
-      {/* HEADER — transparent overlay, centered logo */}
+      {/* HEADER — transparent overlay, centered logo (može se isključiti u adminu) */}
+      {showLogo && (
       <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-center px-4 py-6 md:py-7">
         <a
           href="https://meridianbet.ba"
@@ -305,6 +333,7 @@ export default async function Home({ searchParams, pageMonth }) {
           />
         </a>
       </header>
+      )}
 
       {/* MAIN */}
       <main
@@ -319,6 +348,14 @@ export default async function Home({ searchParams, pageMonth }) {
 
         <SnowOverlay />
 
+        {isClosed && !isAdmin ? (
+          // Kalendar zatvoren (Calendar Styling → Calendar Status): bez dana, klikova i popup-a
+          <CalendarClosed
+            {...closedInfo}
+            countdownTargetIso={countdownTargetIso}
+            countdownLabel={countdownLabel}
+          />
+        ) : (
         <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 pt-20 pb-4 md:pt-24 md:pb-10 ${innerMargin}`}>
           <h1
             className={`
@@ -334,6 +371,8 @@ export default async function Home({ searchParams, pageMonth }) {
             {calendarTitle}
           </h1>
 
+          {countdownTargetIso && <CountdownTimer targetIso={countdownTargetIso} label={countdownLabel} />}
+
           {isAdmin && (
             <div className="mt-2 mb-4 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-2 rounded bg-amber-500/20 text-amber-200 px-3 py-1 text-sm">
@@ -347,11 +386,19 @@ export default async function Home({ searchParams, pageMonth }) {
                 </a>
                 <AdminLogoutButton />
               </div>
+              {isClosed && (
+                <div className="inline-flex items-center gap-1.5 rounded bg-red-700/40 text-red-200 border border-red-500/40 px-3 py-1 text-sm">
+                  <span>⚠ Kalendar zatvoren — posjetioci vide samo poruku</span>
+                  <a href="/admin/calendar-style" className="underline hover:text-white transition-colors">
+                    Izmijeni
+                  </a>
+                </div>
+              )}
               {isMonthInactive && (
                 <div className="inline-flex items-center gap-1.5 rounded bg-red-700/40 text-red-200 border border-red-500/40 px-3 py-1 text-sm">
                   <span>⚠ Mjesec deaktiviran — nije vidljiv korisnicima</span>
                   <a
-                    href="/admin/calendar-style/monthly"
+                    href="/admin/calendar-style"
                     className="underline hover:text-white transition-colors"
                   >
                     Izmijeni
@@ -390,6 +437,7 @@ export default async function Home({ searchParams, pageMonth }) {
                   adminPreview={isAdmin}
                   lang={lang}
                   theme={activeTheme}
+                  confetti={confettiStyle}
                   prevMonth={prevMonth}
                   nextMonth={nextMonth}
                 />
@@ -411,6 +459,7 @@ export default async function Home({ searchParams, pageMonth }) {
             />
           </div>
         </div>
+        )}
       </main>
     </div>
   );

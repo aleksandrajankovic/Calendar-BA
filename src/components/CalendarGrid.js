@@ -16,6 +16,7 @@ export default function CalendarGrid({
   adminPreview = false,
   lang = "ba",
   theme = "default",
+  confetti = null,
   prevMonth = null,
   nextMonth = null,
 }) {
@@ -179,6 +180,7 @@ export default function CalendarGrid({
             month,
             lang,
             theme,
+            confetti,
           }),
         }}
       />
