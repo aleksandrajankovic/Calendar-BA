@@ -357,7 +357,7 @@ export default async function Home({ searchParams, pageMonth }) {
             countdownLabel={countdownLabel}
           />
         ) : (
-        <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 pt-20 pb-4 md:pt-24 md:pb-10 ${innerMargin}`}>
+        <div className={`relative z-10 w-full max-w-6xl px-4 sm:px-6 md:px-10 lg:px-16 ${showLogo ? "pt-20 md:pt-24" : "pt-6 md:pt-8"} pb-4 md:pb-10 ${innerMargin}`}>
           <h1
             className={`
               ${activeTheme === "football"
