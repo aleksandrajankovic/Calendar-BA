@@ -33,8 +33,13 @@ function writeOpened(set) {
   } catch {}
 }
 
+// Ikonica promocije kao poklon; ako se slika ne učita (obrisana, pogrešan link), prikaže se
+// podrazumijevana poklon kutija umjesto "polomljene slike" sa okvirom.
 function GiftArt({ promo, className }) {
-  if (promo?.icon) return <img src={promo.icon} alt="" className={className} loading="lazy" />;
+  const [broken, setBroken] = useState(false);
+  if (promo?.icon && !broken) {
+    return <img src={promo.icon} alt="" className={className} loading="lazy" onError={() => setBroken(true)} />;
+  }
   return (
     <svg className={className} aria-hidden="true">
       <use href="#adv-g-gift" />
