@@ -34,11 +34,27 @@
     0 30px 60px rgba(0, 0, 0, 0.45);
 }
 
+/* desktop: kao pravi kalendar — kolone su dani u sedmici (pon–ned) */
+.desk {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 0.9vw, 10px);
+}
+.weekdays,
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: clamp(7px, 1.2vw, 14px);
+  column-gap: clamp(7px, 1.2vw, 14px);
 }
+.grid { row-gap: clamp(7px, 1.2vw, 14px); }
+.weekdays span {
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.blank { aspect-ratio: 1; }
 
 /* ---------- cell / door ---------- */
 .cell {
@@ -200,11 +216,14 @@
 .future .front { filter: brightness(0.5) saturate(0.6); }
 .future .door { cursor: not-allowed; }
 .future.adminOpenable .door { cursor: pointer; }
+/* katanac preko ilustracije (donji dio vrata), da broj i mjesec ostanu vidljivi */
 .lock {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 55cqi;
   pointer-events: none;
   z-index: 3;
   color: var(--cream);
@@ -269,7 +288,7 @@
   gap: 16px;
 }
 @media (max-width: 767px) {
-  .grid { display: none; }
+  .desk { display: none; }
   .mView { display: flex; }
 }
 .chips {

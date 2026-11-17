@@ -9,6 +9,7 @@ import s from "./AdventCalendar.module.css";
 
 const MONTHS = ["januar", "februar", "mart", "april", "maj", "juni", "juli", "august", "septembar", "oktobar", "novembar", "decembar"];
 const WEEKDAYS = ["nedjelja", "ponedjeljak", "utorak", "srijeda", "četvrtak", "petak", "subota"];
+const WEEKDAY_HEAD = ["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"];
 const TONES = [s.tBordeaux, s.tCream, s.tOlive, s.tBeige];
 const STORAGE_KEY = "advent-opened";
 
@@ -274,11 +275,22 @@ export default function AdventCalendar({ days = [], adminPreview = false }) {
 
 
       <div className={s.board}>
-        {/* DESKTOP: cijela tabla */}
-        <div className={s.grid}>
-          {days.map((day, i) => (
-            <Door key={day.key} {...doorProps(day, i)} />
-          ))}
+        {/* DESKTOP: cijela tabla, poravnata po danima u sedmici (pon–ned) */}
+        <div className={s.desk}>
+          <div className={s.weekdays} aria-hidden="true">
+            {WEEKDAY_HEAD.map((w) => (
+              <span key={w}>{w}</span>
+            ))}
+          </div>
+          <div className={s.grid}>
+            {/* prazna mjesta prije prvog dana (npr. mjesec počinje srijedom → pon i uto prazni) */}
+            {Array.from({ length: (days[0].weekday + 6) % 7 }, (_, i) => (
+              <div key={`blank-${i}`} className={s.blank} aria-hidden="true" />
+            ))}
+            {days.map((day, i) => (
+              <Door key={day.key} {...doorProps(day, i)} />
+            ))}
+          </div>
         </div>
 
         {/* MOBILNI: jedno polje, swipe lijevo/desno */}
