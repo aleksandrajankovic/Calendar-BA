@@ -7,6 +7,7 @@ import CalendarInteractionsClient from "@/lib/calendarIneractionsClient";
 import CalendarMobileStack from "./CalendarMobileStack";
 import CalendarMobileHorizontal from "./CalendarMobileHorizontal";
 import CalendarMobileFootball from "./CalendarMobileFootball";
+import "@/lib/slot/slotReveal.css";
 
 export default function CalendarGrid({
   year,

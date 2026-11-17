@@ -1,12 +1,22 @@
 // src/components/CalendarDayBall.js
 import { rowdies } from "@/app/fonts";
+import {
+  KNOCKOUT_CATEGORIES,
+  getKnockoutRingClass,
+  getKnockoutBadgeLabel,
+  getKnockoutBadgeClass,
+} from "@/lib/promoCategoryStyles";
 
 export default function CalendarDayBall({ cell, adminPreview }) {
   const locked = cell.isLocked && !adminPreview && !cell.isToday;
   const isToday = cell.isToday;
   const isGold = cell.category === "GOLD";
+  // faza nokaut turnira: iz polja knockoutPhase ili (starije promocije) iz kategorije
+  const knockoutPhase = cell.knockoutPhase || (KNOCKOUT_CATEGORIES.has(cell.category) ? cell.category : null);
 
-  const ringClass = isGold
+  const ringClass = knockoutPhase
+    ? ""
+    : isGold
     ? "border-2 border-[#f8d97a]"
     : isToday
     ? "ring-[3px] ring-[#FACC01] shadow-[0_0_24px_rgba(250,204,1,1)]"
@@ -23,6 +33,13 @@ export default function CalendarDayBall({ cell, adminPreview }) {
           <span className="pointer-events-none absolute inset-0 z-20 rounded-full today-ring-pulse" style={{ border: "3px solid #FACC01" }} />
         )}
 
+        {/* oznaka nokaut faze — gornji desni ugao, vidljiva i kad je dan zaključan */}
+        {knockoutPhase && (
+          <span className={`knockout-badge ${getKnockoutBadgeClass(knockoutPhase)}`}>
+            {getKnockoutBadgeLabel(knockoutPhase)}
+          </span>
+        )}
+
         <button
           data-day-button
           data-day={cell.day}
@@ -32,6 +49,7 @@ export default function CalendarDayBall({ cell, adminPreview }) {
             relative rounded-full overflow-hidden
             w-full h-full
             ${ringClass}
+            ${knockoutPhase ? getKnockoutRingClass(knockoutPhase) : ""}
             ${isGold && !locked ? "gold-ball-glow" : ""}
             transition duration-200
             ${locked ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-[1.06] active:scale-[0.97]"}
@@ -55,7 +73,7 @@ export default function CalendarDayBall({ cell, adminPreview }) {
             <img
               src={cell.icon}
               alt="ball"
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover${knockoutPhase && !locked ? " knockout-ball-spin" : ""}`}
               loading="lazy"
             />
           )}

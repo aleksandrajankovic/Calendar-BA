@@ -11,7 +11,7 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 const COPIED_FIELDS = [
   "title", "link", "button", "icon", "rich", "richHtml", "buttonColor",
-  "scratch", "flipCard", "translations", "category",
+  "scratch", "slot", "flipCard", "translations", "category",
 ];
 
 export async function POST(req) {

@@ -17,6 +17,15 @@ const CATEGORIES = [
   { value: "CASINO", label: "Casino" },
   { value: "MISSIONS", label: "Missions" },
   { value: "ALL", label: "All" },
+  { value: "GOLD", label: "Zlatna lopta" },
+];
+
+// faza nokaut turnira — oznaka na lopti u football temi (kombinuje se sa kategorijom)
+const KNOCKOUT_OPTIONS = [
+  { value: null, label: "Nema" },
+  { value: "QUARTER_FINAL", label: "⚽ Četvrtfinale (1/4)" },
+  { value: "SEMI_FINAL", label: "⚽ Polufinale (1/2)" },
+  { value: "FINAL", label: "🏆 Finale" },
 ];
 
 // yyyy-mm-dd ⇄ {year, month(0-11), day}
@@ -62,7 +71,9 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
       icon: initial?.icon ?? "",
       active: initial?.active ?? true,
       scratch: !!initial?.scratch,
+      slot: !!initial?.slot,
       flipCard: !!initial?.flipCard,
+      knockoutPhase: initial?.knockoutPhase || null,
       buttonColor: initial?.buttonColor ?? "green",
 
       translations: baseTranslations,
@@ -146,7 +157,9 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
 
         active: !!form.active,
         scratch: !!form.scratch,
+        slot: !!form.slot,
         flipCard: !!form.flipCard,
+        knockoutPhase: form.knockoutPhase || null,
         buttonColor: form.buttonColor || "green",
 
         translations,
@@ -239,13 +252,32 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
 
         {/* Scratch toggle */}
         <div className="pb-2 space-y-2">
+          {/* Grebalica i slot se isključuju — uključivanje jednog gasi drugi */}
           <label className="flex items-center gap-2 text-sm text-neutral-800">
             <input
               type="checkbox"
               checked={!!form.scratch}
-              onChange={(e) => set("scratch", e.target.checked)}
+              onChange={(e) => {
+                set("scratch", e.target.checked);
+                if (e.target.checked) set("slot", false);
+              }}
             />
             Enable scratch card
+          </label>
+          <label className="flex items-center gap-2 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={!!form.slot}
+              onChange={(e) => {
+                set("slot", e.target.checked);
+                if (e.target.checked) {
+                  set("scratch", false);
+                  set("flipCard", false);
+                }
+              }}
+            />
+            Enable slot reveal
+            <span className="text-xs text-neutral-400">(reels spin the month&apos;s promo images, then stop on this one)</span>
           </label>
           {!!form.scratch && (
             <label className="flex items-center gap-2 text-sm text-neutral-600 pl-5">
@@ -437,6 +469,33 @@ export default function SpecialEditor({ initial, onCancel, onSaved }) {
                   }
                 >
                   {cat.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Knockout faza (football tema) */}
+        <div className="mt-2">
+          <span className="mb-1 inline-block text-sm text-neutral-800">
+            Knockout faza <span className="text-neutral-400 font-normal">(football tema, kombinuje se sa kategorijom)</span>
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {KNOCKOUT_OPTIONS.map((opt) => {
+              const selected = (form.knockoutPhase || null) === opt.value;
+              return (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => set("knockoutPhase", opt.value)}
+                  className={
+                    "px-3 py-1 rounded-full text-[11px] font-medium border transition " +
+                    (selected
+                      ? "bg-[#17BB00] text-white border-[#17BB00]"
+                      : "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-100")
+                  }
+                >
+                  {opt.label}
                 </button>
               );
             })}

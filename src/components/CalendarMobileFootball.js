@@ -4,6 +4,12 @@
 import { useEffect, useRef, useState } from "react";
 import { russoOne } from "@/app/fonts";
 import MonthPagination from "@/components/MonthPagination";
+import {
+  KNOCKOUT_CATEGORIES,
+  getKnockoutRingClass,
+  getKnockoutBadgeLabel,
+  getKnockoutBadgeClass,
+} from "@/lib/promoCategoryStyles";
 
 const NUM_DOTS = 7;
 
@@ -98,8 +104,12 @@ export default function CalendarMobileFootball({
   const locked = selectedDay?.isLocked && !adminPreview;
   const isToday = selectedDay?.isToday;
   const isGold = selectedDay?.category === "GOLD";
+  const knockoutPhase =
+    selectedDay?.knockoutPhase || (KNOCKOUT_CATEGORIES.has(selectedDay?.category) ? selectedDay?.category : null);
 
-  const ballRing = isGold
+  const ballRing = knockoutPhase
+    ? ""
+    : isGold
     ? "border-2 border-[#f8d97a]"
     : isToday
     ? "ring-[4px] ring-[#FACC01] shadow-[0_0_40px_rgba(250,204,1,1)]"
@@ -276,6 +286,16 @@ export default function CalendarMobileFootball({
             />
           )}
 
+          {/* oznaka nokaut faze — gore desno na lopti, vidljiva i kad je dan zaključan */}
+          {knockoutPhase && (
+            <span
+              className={`knockout-badge ${getKnockoutBadgeClass(knockoutPhase)}`}
+              style={{ top: "6px", right: "6px", fontSize: "11px", padding: "3px 10px" }}
+            >
+              {getKnockoutBadgeLabel(knockoutPhase)}
+            </span>
+          )}
+
           <button
             data-day-button
             data-day={selectedDay?.day}
@@ -286,6 +306,7 @@ export default function CalendarMobileFootball({
               relative rounded-full overflow-hidden
               w-(--football-ball-size) h-(--football-ball-size)
               ${ballRing}
+              ${knockoutPhase ? getKnockoutRingClass(knockoutPhase) : ""}
               ${isGold && !locked ? "gold-ball-glow" : ""}
               bg-black/40
               transition duration-300
@@ -305,7 +326,7 @@ export default function CalendarMobileFootball({
               />
             )}
             {selectedDay?.icon && (
-              <img src={selectedDay.icon} alt="ball" className="w-full h-full object-cover" />
+              <img src={selectedDay.icon} alt="ball" className={`w-full h-full object-cover${knockoutPhase && !locked ? " knockout-ball-spin" : ""}`} />
             )}
             {locked && (
               <div

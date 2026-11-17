@@ -4,6 +4,7 @@ import { Rowdies, Russo_One, Bodoni_Moda, Jost } from "next/font/google";
 export const rowdies = Rowdies({
   subsets: ["latin"],
   weight: "700",
+  variable: "--font-rowdies", // slot mašina (lib/slot/slotReveal.css) ga koristi preko CSS promjenljive
 });
 
 export const russoOne = Russo_One({

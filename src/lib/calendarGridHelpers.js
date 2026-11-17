@@ -1,5 +1,6 @@
 // src/lib/calendarGridHelpers.js
 import { buildPromoUrlISO, slugify } from "@/lib/slug";
+import { firstImage } from "@/lib/slot/slotReveal";
 
 function asArray(x) {
   if (Array.isArray(x)) return x;
@@ -82,8 +83,12 @@ export function buildCalendarData({
     const isLocked = adminPreview ? false : isFutureForUx;
 
     const category = promo?.category || "ALL";
-    const scratch = !!promo?.scratch;
-    const flipCard = !!promo?.flipCard;
+    // slot ima prednost nad grebalicom (API ih ionako ne dozvoljava zajedno)
+    const slot = !!promo?.slot;
+    const scratch = !!promo?.scratch && !slot;
+    const flipCard = !!promo?.flipCard && !slot;
+    // faza nokaut turnira (football tema) — oznaka i prsten na lopti, vidljivi i na zaključanim danima
+    const knockoutPhase = promo?.knockoutPhase || null;
 
     // cell za grid (desktop)
     cells.push({
@@ -96,6 +101,7 @@ export function buildCalendarData({
       isLocked,
       icon,
       category,
+      knockoutPhase,
     });
 
     // payload za JS (modal + mobile)
@@ -120,7 +126,9 @@ export function buildCalendarData({
       buttonColor,
       category,
       scratch,
+      slot,
       flipCard,
+      knockoutPhase,
 
       hasPromo: Boolean(promo),
       isToday,
@@ -138,12 +146,22 @@ export function buildCalendarData({
             category,
             icon,
             scratch,
+            slot,
             flipCard,
           }
         : null,
     });
   }
 
+
+  // Slot vrti slike ostalih promocija mjeseca (prva slika iz opisa), pa na kraju staje na svoju.
+  // Zaključani dani nemaju opis u payload-u, pa njihove slike ne ulaze u valjke.
+  const promoImages = [...new Set(daysPayload.map((d) => firstImage(d.richHtml || "")).filter(Boolean))];
+  for (const d of daysPayload) {
+    if (!d.slot) continue;
+    const own = firstImage(d.richHtml || "");
+    d.slotPool = promoImages.filter((src) => src !== own).slice(0, 12);
+  }
 
   // TRAILING – dani sledećeg meseca da se popuni poslednji red
   const totalCells = cells.length;

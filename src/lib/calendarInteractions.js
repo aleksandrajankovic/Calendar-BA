@@ -2,6 +2,8 @@
 import { renderScratchModal } from "./scratch/renderScratchModal";
 import { initScratch } from "./scratch/initScratch";
 import { esc } from "./escapeHtml";
+import { firstImage, renderSlotModal, initSlot } from "./slot/slotReveal";
+import { markDayOpened } from "./calendarProgress";
 
 // -----------------------------
 // NORMAL MODAL (bez scratch-a)
@@ -123,6 +125,29 @@ function renderNormalModal(entry, lang = "ba") {
 }
 
 // -----------------------------
+// SLOT MAŠINA
+// -----------------------------
+// Tri valjka vrte slike ostalih promocija mjeseca (entry.slotPool) i staju na sliku ove
+// promocije, koja se zatim pretvara u običan prikaz promocije.
+const MONTHS_BA = [
+  "januar", "februar", "mart", "april", "maj", "juni",
+  "juli", "august", "septembar", "oktobar", "novembar", "decembar",
+];
+
+function renderSlot(entry, lang) {
+  const richHtml = entry.richHtml || entry.promo?.richHtml || "";
+  const image = firstImage(richHtml);
+  return renderSlotModal({
+    image,
+    icon: entry.icon || entry.promo?.icon || "",
+    pool: entry.slotPool?.length ? entry.slotPool : [image || entry.icon].filter(Boolean),
+    promoHtml: renderNormalModal(entry, lang),
+    dateLabel: `${entry.day}. ${MONTHS_BA[entry.month] || ""}`,
+    buttonLabel: "OTKRIJ PROMOCIJU",
+  });
+}
+
+// -----------------------------
 // MAIN RENDER
 // -----------------------------
 function renderModalHTML(entry, lang = "ba") {
@@ -140,6 +165,8 @@ function renderModalHTML(entry, lang = "ba") {
   const link = entry.link || (promo && promo.link) || "";
   const richHtml = entry.richHtml || (promo && promo.richHtml) || "";
   const defaultButtonLabel = button || (lang === "ba" ? "Saznaj više" : "Learn more");
+
+  if (entry?.slot || promo?.slot) return renderSlot(entry, lang);
 
   const isScratch = !!(entry?.scratch || promo?.scratch);
   const flipCard = !!(entry?.flipCard || promo?.flipCard);
@@ -241,6 +268,31 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
     setTimeout(() => cb?.(), 200);
   }
 
+  let disposeSlot = () => {};
+
+  // Slot: jednom zavrteo = pri sljedećem otvaranju odmah promocija (kao ogrebana grebalica)
+  function slotKey(entry) {
+    return `slot:${entry.shareUrl || `${entry.year}-${entry.month}-${entry.day}`}`;
+  }
+
+  function startSlot(entry) {
+    if (!document.getElementById("slot-reveal")) return;
+    let alreadyOpened = false;
+    try {
+      alreadyOpened = localStorage.getItem(slotKey(entry)) === "1";
+    } catch {}
+    disposeSlot = initSlot({
+      alreadyOpened,
+      confetti: payload.confetti?.style !== "off",
+      onStopped: () => {
+        try {
+          localStorage.setItem(slotKey(entry), "1");
+        } catch {}
+        markDayOpened(entry.year, entry.month, entry.day);
+      },
+    });
+  }
+
   function openModal(entry) {
     content.innerHTML = renderModalHTML(entry, lang);
 
@@ -259,12 +311,15 @@ export function initCalendarInteractions(rootSelector = "#calendar-root") {
       requestAnimationFrame(() => {
         const canvas = document.getElementById("scratch-canvas");
         if (canvas) initScratch({ confetti: payload.confetti });
+        startSlot(entry);
       })
     );
   }
 
   function closeModal({ fromPopstate = false } = {}) {
     isOpen = false;
+    disposeSlot();
+    disposeSlot = () => {};
     document.body.style.overflow = "";
     resetModalStyles();
 

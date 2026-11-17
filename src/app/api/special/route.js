@@ -6,6 +6,9 @@ import { getAdminFromRequest } from "@/lib/auth";
 import { sanitizeRichHtml, sanitizeTranslations } from "@/lib/sanitize";
 import { sanitizeLink } from "@/lib/validate";
 
+// faza nokaut turnira za football temu (oznaka na lopti)
+const KNOCKOUT_PHASES = new Set(["QUARTER_FINAL", "SEMI_FINAL", "FINAL"]);
+
 const DEFAULT_LANG = "ba";
 
 export async function GET(req) {
@@ -43,9 +46,9 @@ export async function POST(req) {
 
   const body = await req.json().catch(() => ({}));
   const {
-    year, month, day, icon, link, buttonColor, active, scratch, flipCard,
+    year, month, day, icon, link, buttonColor, active, scratch, slot, flipCard,
     title, button, rich, richHtml,
-    translations: rawTranslations, defaultLang, category,
+    translations: rawTranslations, defaultLang, category, knockoutPhase,
   } = body;
 
   const translations = rawTranslations || {};
@@ -72,11 +75,14 @@ export async function POST(req) {
       richHtml: sanitizeRichHtml(mainT.richHtml ?? richHtml ?? null),
       icon: icon ?? "",
       active: typeof active === "boolean" ? active : true,
-      scratch: !!scratch,
-      flipCard: !!flipCard,
+      // slot i grebalica se isključuju — slot ima prednost
+      scratch: !!scratch && !slot,
+      slot: !!slot,
+      flipCard: !!flipCard && !slot,
       buttonColor: buttonColor || "green",
       translations: sanitizeTranslations(translations),
       category: category || "ALL",
+      knockoutPhase: KNOCKOUT_PHASES.has(knockoutPhase) ? knockoutPhase : null,
     },
   });
 

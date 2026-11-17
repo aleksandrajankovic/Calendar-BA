@@ -28,6 +28,7 @@ const CATEGORIES = [
   { value: "CASINO", label: "Casino" },
   { value: "MISSIONS", label: "Missions" },
   { value: "ALL", label: "All" },
+  { value: "GOLD", label: "Zlatna lopta" },
 ];
 
 export default function WeeklyEditor({ initial, onCancel, onSave }) {
@@ -51,6 +52,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
       buttonColor: initial?.buttonColor || "green",
       category: initial?.category || "ALL",
       scratch: !!initial?.scratch,
+      slot: !!initial?.slot,
       flipCard: !!initial?.flipCard,
     };
   }, [initial]);
@@ -131,6 +133,7 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
         icon: form.icon ?? "",
         active: !!form.active,
         scratch: !!form.scratch,
+        slot: !!form.slot,
         flipCard: !!form.flipCard,
         buttonColor: form.buttonColor ?? "green",
 
@@ -208,13 +211,32 @@ export default function WeeklyEditor({ initial, onCancel, onSave }) {
 
         {/* Scratch toggle */}
         <div className="pb-1 space-y-2">
+          {/* Grebalica i slot se isključuju — uključivanje jednog gasi drugi */}
           <label className="flex items-center gap-2 text-sm text-neutral-800">
             <input
               type="checkbox"
               checked={!!form.scratch}
-              onChange={(e) => setField("scratch", e.target.checked)}
+              onChange={(e) => {
+                setField("scratch", e.target.checked);
+                if (e.target.checked) setField("slot", false);
+              }}
             />
             Enable scratch card
+          </label>
+          <label className="flex items-center gap-2 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={!!form.slot}
+              onChange={(e) => {
+                setField("slot", e.target.checked);
+                if (e.target.checked) {
+                  setField("scratch", false);
+                  setField("flipCard", false);
+                }
+              }}
+            />
+            Enable slot reveal
+            <span className="text-xs text-neutral-400">(reels spin the month&apos;s promo images, then stop on this one)</span>
           </label>
           {!!form.scratch && (
             <label className="flex items-center gap-2 text-sm text-neutral-600 pl-5">

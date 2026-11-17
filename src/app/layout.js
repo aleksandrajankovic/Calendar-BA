@@ -1,5 +1,6 @@
 import { Roboto, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
+import { rowdies } from "./fonts";
 import { Toaster } from "react-hot-toast";
 
 const roboto = Roboto({
@@ -55,7 +56,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="bs">
       <body
-        className={`${roboto.variable} ${robotoCondensed.variable} min-h-screen`}
+        className={`${roboto.variable} ${robotoCondensed.variable} ${rowdies.variable} min-h-screen`}
       >
         {children}
         <Toaster
