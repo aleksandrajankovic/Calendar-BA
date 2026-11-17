@@ -5,6 +5,7 @@ import MonthPagination from "@/components/MonthPagination";
 import AdminLogoutButton from "@/components/AdminLogoutButton";
 import prisma from "@/lib/db";
 import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/auth";
 import SnowOverlay from "@/components/SnowOverlay";
 import { redirect } from "next/navigation";
 
@@ -164,7 +165,9 @@ export default async function Home({ searchParams }) {
 
   const cookieStore = await cookies();
   const adminCookie = cookieStore.get("admin_auth");
-  const isAdmin = !!adminCookie?.value;
+  // Samo postojanje cookie-ja nije dovoljno — mora biti validan (potpisan) JWT,
+  // inače bi bilo ko ručno postavljenim cookie-jem vidio buduće promocije
+  const isAdmin = !!adminCookie?.value && !!(await verifyToken(adminCookie.value));
 
   const now = new Date();
   const lang = "ba";
