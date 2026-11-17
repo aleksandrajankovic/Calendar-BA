@@ -61,8 +61,10 @@ body {
   outline: 3px solid #17bb00;
   outline-offset: 2px;
 }
-/* Ostale slike u opisu unutar pop-upa (sve teme): centrirano, u širini prozora */
-#promo-content img {
+/* Ostale slike u opisu unutar pop-upa (sve teme): centrirano, u širini prozora.
+   Samo slike iz opisa (bez klase) — ne dira grebalicu, flip karticu ni valjke slot mašine;
+   :where() drži specifičnost na nuli, pa pravila tih efekata uvijek imaju prednost. */
+:where(#promo-content) img:not([class]):not([draggable]):not(.slot-promo img) {
   display: block;
   max-width: 100%;
   height: auto;
