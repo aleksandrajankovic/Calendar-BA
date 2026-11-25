@@ -412,7 +412,7 @@ function PromoModal({ day, onClose, revealFrom = null }) {
   );
 }
 
-export default function AdventCalendar({ days = [], adminPreview = false, year, month, prevMonth = null, nextMonth = null }) {
+export default function AdventCalendar({ days = [], adminPreview = false, year, month, prevMonth = null, nextMonth = null, pagLabel = null, showPagination = true }) {
   const todayIdx = days.findIndex((d) => d.state === "today");
   const initialSel = todayIdx >= 0 ? todayIdx : days[0]?.state === "future" ? 0 : Math.max(days.length - 1, 0);
 
@@ -610,9 +610,9 @@ export default function AdventCalendar({ days = [], adminPreview = false, year, 
       </div>
 
       {/* MOBILNI: mjesec ispod kartice (bez okvira) */}
-      {year != null && (
+      {year != null && showPagination && (
         <div className={s.mFootNav}>
-          <MonthPagination year={year} month={month} prevMonth={prevMonth} nextMonth={nextMonth} className="text-sm" />
+          <MonthPagination year={year} month={month} prevMonth={prevMonth} nextMonth={nextMonth} label={pagLabel} variant="advent" />
         </div>
       )}
 

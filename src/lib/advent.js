@@ -53,16 +53,18 @@ function rangeFromEntry(entry) {
  */
 export function resolveAdvent({ monthBgs = {}, globalTheme, year, month }) {
   const own = monthBgs[`${year}-${month}`] || {};
+  // owner = mjesec u adminu na kojem je period podešen (može biti van perioda, npr. novembar za 14.12.–03.01.)
   if (own.theme === "advent") {
-    return rangeFromEntry(own) || wholeMonth(year, month);
+    return { ...(rangeFromEntry(own) || wholeMonth(year, month)), owner: { y: year, m: month } };
   }
   if (own.theme) return null;
 
-  for (const entry of Object.values(monthBgs)) {
+  for (const [key, entry] of Object.entries(monthBgs)) {
     if (entry?.theme !== "advent") continue;
     const r = rangeFromEntry(entry);
     if (r && ord(r.start) <= ord({ y: year, m: month }) && ord({ y: year, m: month }) <= ord(r.end)) {
-      return r;
+      const [oy, om] = key.split("-").map(Number);
+      return { ...r, owner: Number.isFinite(oy) && Number.isFinite(om) ? { y: oy, m: om } : null };
     }
   }
 

@@ -11,7 +11,7 @@ function getSecret() {
 }
 
 // ── Token revocation (in-memory, single-instance) ──────────────────────────
-// Map<jti, expiresAtMs>
+
 const revokedTokens = new Map();
 
 function pruneRevoked() {

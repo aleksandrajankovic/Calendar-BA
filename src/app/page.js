@@ -313,12 +313,21 @@ export default async function Home({ searchParams, pageMonth }) {
   const countdownLabel = calendarSettings?.countdownLabel || "Kalendar se otvara za";
 
   // Pagination — kod advent teme preskačemo mjesece koje period već pokriva
-  const pagFrom = advent ? { y: advent.start.y, m: advent.start.m } : { y: year, m: month };
-  const pagTo   = advent ? { y: advent.end.y,   m: advent.end.m   } : { y: year, m: month };
+  // (i mjesec na kojem je period podešen, npr. novembar sa periodom 14.12.–03.01. — inače "nazad" vodi na istu tablu)
+  const ymOrd = ({ y, m }) => y * 12 + m;
+  const covered = [{ y: year, m: month }, ...(advent ? [advent.start, advent.end, advent.owner].filter(Boolean) : [])];
+  const pagFrom = covered.reduce((a, b) => (ymOrd(b) < ymOrd(a) ? b : a));
+  const pagTo   = covered.reduce((a, b) => (ymOrd(b) > ymOrd(a) ? b : a));
   const [prevMonth, nextMonth] = await Promise.all([
     findNearestMonthWithPromos(pagFrom.y, pagFrom.m, "prev", inactiveSet),
     findNearestMonthWithPromos(pagTo.y, pagTo.m, "next", inactiveSet),
   ]);
+
+  // Period preko više mjeseci: traka ispod piše cijeli raspon ("Novembar – Decembar 2026"), ne samo
+  // tekući mjesec; strelice vode samo na popunjene mjesece prije/poslije perioda — ako ih nema, traka se ne prikazuje.
+  const spansMonths = !!advent && (advent.start.y !== advent.end.y || advent.start.m !== advent.end.m);
+  const pagLabel = spansMonths ? `${MONTH_NAMES_BS[advent.start.m]} – ${MONTH_NAMES_BS[advent.end.m]}` : null;
+  const showPagination = !spansMonths || !!prevMonth || !!nextMonth;
 
   return (
     <div className="min-h-[100dvh] flex flex-col overflow-hidden">
@@ -462,6 +471,8 @@ export default async function Home({ searchParams, pageMonth }) {
                 month={month}
                 prevMonth={prevMonth}
                 nextMonth={nextMonth}
+                pagLabel={pagLabel}
+                showPagination={showPagination}
               />
             </div>
           ) : (
@@ -486,15 +497,19 @@ export default async function Home({ searchParams, pageMonth }) {
           )}
 
           {/* DESKTOP PAGINATION */}
+          {showPagination && (
           <div className={`hidden md:flex items-center justify-center ${activeTheme === "football" ? "mt-4" : "mt-6"}`}>
             <MonthPagination
               year={year}
               month={month}
               prevMonth={prevMonth}
               nextMonth={nextMonth}
-              className="text-base"
+              className={advent ? "" : "text-base"}
+              label={pagLabel}
+              variant={advent ? "advent" : "default"}
             />
           </div>
+          )}
         </div>
         )}
       </main>

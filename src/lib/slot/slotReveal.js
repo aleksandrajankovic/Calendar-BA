@@ -229,7 +229,7 @@ async function showPromo(root, onRevealed, reduced) {
   stage.hidden = true;
   promo.hidden = false;
   root.classList.add("slot-revealed");
-  onRevealed({ from }); // from = pozicija valjaka (advent: prelaz banera u krem pop-up)
+  onRevealed({ from });
   if (reduced) return;
 
   const easing = "cubic-bezier(.3,.7,.2,1)";
