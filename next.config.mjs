@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // bez "x-powered-by: Next.js" zaglavlja — ne otkrivamo na čemu sajt radi
+  poweredByHeader: false,
   experimental: {
     // CSS ide direktno u HTML umjesto kao zasebni fajlovi koji blokiraju
     // prvo iscrtavanje (PageSpeed: "Render-blocking requests").

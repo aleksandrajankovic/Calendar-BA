@@ -17,6 +17,7 @@ import CalendarClosed from "@/components/CalendarClosed";
 import CountdownTimer from "@/components/CountdownTimer";
 import { adventDisplay } from "@/app/fonts";
 import { redirect } from "next/navigation";
+import { unstable_cache } from "next/cache";
 
 // -------------------------
 // HELPERS
@@ -89,6 +90,47 @@ function normalizeSpecials(rows = [], lang) {
 }
 
 // -------------------------
+// KEŠ ZA POSJETIOCE — podešavanja, promocije i strelice za mjesece čitaju se iz keša
+// (tag "calendar"); svako čuvanje u adminu (api/special, api/weekly-plan,
+// api/calendar-settings) poziva revalidateTag("calendar"), pa izmjene važe odmah.
+// Admin uvijek čita svježe iz baze.
+// -------------------------
+const CACHE = { revalidate: 300, tags: ["calendar"] };
+
+const getCachedSettings = unstable_cache(() => prisma.calendarSettings.findFirst(), ["calendar-settings"], CACHE);
+function getCalendarSettings(isAdmin = false) {
+  return isAdmin ? prisma.calendarSettings.findFirst() : getCachedSettings();
+}
+
+function loadMonthRows(year, month) {
+  return Promise.all([
+    prisma.weeklyPlan.findMany({ where: { year, month }, orderBy: { weekday: "asc" } }),
+    prisma.specialPromotion.findMany({ where: { year, month }, orderBy: [{ day: "asc" }] }),
+  ]);
+}
+const getCachedMonthRows = unstable_cache(loadMonthRows, ["promo-data"], CACHE);
+
+function loadAdventRows(months) {
+  const monthFilter = { OR: months.map(({ y, m }) => ({ year: y, month: m })) };
+  return Promise.all([
+    prisma.weeklyPlan.findMany({ where: monthFilter }),
+    prisma.specialPromotion.findMany({ where: monthFilter }),
+  ]);
+}
+const getCachedAdventRows = unstable_cache(loadAdventRows, ["advent-data"], CACHE);
+
+const getCachedNearestMonth = unstable_cache(
+  (y, m, direction, inactiveKeys) => findNearestMonthWithPromos(y, m, direction, new Set(inactiveKeys)),
+  ["nearest-month"],
+  CACHE
+);
+function nearestMonth(y, m, direction, inactiveSet, isAdmin) {
+  return isAdmin
+    ? findNearestMonthWithPromos(y, m, direction, inactiveSet)
+    : getCachedNearestMonth(y, m, direction, [...inactiveSet].sort());
+}
+
+// -------------------------
 // PAGINATION — finds nearest month with promos, skipping inactive months
 // -------------------------
 async function findNearestMonthWithPromos(currentY, currentM, direction, inactiveSet = new Set()) {
@@ -143,7 +185,7 @@ function resolvePageMonth(pageMonth) {
 
 export async function generateMetadata({ pageMonth } = {}) {
   const { year, month } = resolvePageMonth(pageMonth);
-  const settings = await prisma.calendarSettings.findFirst();
+  const settings = await getCalendarSettings();
 
   // Advent period preko dva mjeseca: oba mjeseca prikazuju istu tablu → jedan kanonski URL (mjesec početka)
   const adventRange = resolveAdvent({
@@ -199,8 +241,8 @@ export default async function Home({ searchParams, pageMonth }) {
   const lang = "ba";
   const { year, month } = resolvePageMonth(pageMonth);
 
-  // Calendar settings — always read fresh (inactive flag must be current)
-  const calendarSettings = await prisma.calendarSettings.findFirst();
+  // Calendar settings — admin svježe, posjetioci iz keša (briše se odmah pri čuvanju u adminu)
+  const calendarSettings = await getCalendarSettings(isAdmin);
   const monthBgs = calendarSettings?.monthBackgrounds || {};
 
   // Build inactive set for pagination
@@ -214,8 +256,8 @@ export default async function Home({ searchParams, pageMonth }) {
   const monthBg = monthBgs[`${year}-${month}`] || {};
   if (monthBg.inactive && !isAdmin) {
     const nearest =
-      await findNearestMonthWithPromos(year, month, "next", inactiveSet) ||
-      await findNearestMonthWithPromos(year, month, "prev", inactiveSet);
+      await nearestMonth(year, month, "next", inactiveSet, isAdmin) ||
+      await nearestMonth(year, month, "prev", inactiveSet, isAdmin);
     if (nearest) redirect(monthHref(nearest.y, nearest.m));
   }
 
@@ -230,11 +272,7 @@ export default async function Home({ searchParams, pageMonth }) {
   let adventDays = null;
   if (advent) {
     const months = monthsInRange(advent);
-    const monthFilter = { OR: months.map(({ y, m }) => ({ year: y, month: m })) };
-    const [advPlanRows, advSpecialRows] = await Promise.all([
-      prisma.weeklyPlan.findMany({ where: monthFilter }),
-      prisma.specialPromotion.findMany({ where: monthFilter }),
-    ]);
+    const [advPlanRows, advSpecialRows] = await (isAdmin ? loadAdventRows(months) : getCachedAdventRows(months));
     const weeklyByMonth = {};
     for (const { y, m } of months) {
       weeklyByMonth[`${y}-${m}`] = normWeeklyRows(
@@ -253,10 +291,7 @@ export default async function Home({ searchParams, pageMonth }) {
   // Load promo data
   const [weeklyPlanRows, specialRows] = advent
     ? [[], []]
-    : await Promise.all([
-        prisma.weeklyPlan.findMany({ where: { year, month }, orderBy: { weekday: "asc" } }),
-        prisma.specialPromotion.findMany({ where: { year, month }, orderBy: [{ day: "asc" }] }),
-      ]);
+    : await (isAdmin ? loadMonthRows(year, month) : getCachedMonthRows(year, month));
 
   const planned = normWeeklyRows(weeklyPlanRows, lang);
   const weekly  = Array.from(
@@ -319,8 +354,8 @@ export default async function Home({ searchParams, pageMonth }) {
   const pagFrom = covered.reduce((a, b) => (ymOrd(b) < ymOrd(a) ? b : a));
   const pagTo   = covered.reduce((a, b) => (ymOrd(b) > ymOrd(a) ? b : a));
   const [prevMonth, nextMonth] = await Promise.all([
-    findNearestMonthWithPromos(pagFrom.y, pagFrom.m, "prev", inactiveSet),
-    findNearestMonthWithPromos(pagTo.y, pagTo.m, "next", inactiveSet),
+    nearestMonth(pagFrom.y, pagFrom.m, "prev", inactiveSet, isAdmin),
+    nearestMonth(pagTo.y, pagTo.m, "next", inactiveSet, isAdmin),
   ]);
 
   // Period preko više mjeseci: traka ispod piše cijeli raspon ("Novembar – Decembar 2026"), ne samo

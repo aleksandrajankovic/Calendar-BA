@@ -1,6 +1,7 @@
 // src/app/api/special/route.js
 export const runtime = "nodejs";
 
+import { revalidateTag } from "next/cache";
 import prisma from "@/lib/db";
 import { getAdminFromRequest } from "@/lib/auth";
 import { sanitizeRichHtml, sanitizeTranslations } from "@/lib/sanitize";
@@ -37,6 +38,7 @@ export async function PATCH(req) {
     data: { active },
   });
 
+  revalidateTag("calendar");
   return Response.json({ updated: count });
 }
 
@@ -86,5 +88,6 @@ export async function POST(req) {
     },
   });
 
+  revalidateTag("calendar");
   return Response.json(created, { status: 201 });
 }
